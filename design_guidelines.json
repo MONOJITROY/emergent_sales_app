@@ -1,0 +1,117 @@
+{
+  "theme_and_archetype": {
+    "domain": "Business/Admin/Inventory",
+    "theme": "LIGHT",
+    "archetype": "Archetype 4 (Swiss & High-Contrast) customized with Industrial precision",
+    "reasoning": "A high-contrast, data-dense enterprise tool requires extreme clarity. The 'Swiss Brutalism' edge ensures it doesn't look like a generic SaaS product, while an industrial accent color (Blaze Orange) provides a subtle nod to physical inventory/warehousing.",
+    "vibe": "Objective, highly functional, rigid, crisp, authoritative."
+  },
+  "typography": {
+    "rules": "Avoid Inter/Roboto. Use geometric and robust typography tailored for tabular data and numeric legibility.",
+    "fonts": {
+      "headings": {
+        "family": "Chivo",
+        "weights": ["600", "700", "900"],
+        "usage": "H1-H4. Chivo's squarish proportion feels industrial and solid."
+      },
+      "body": {
+        "family": "IBM Plex Sans",
+        "weights": ["400", "500"],
+        "usage": "Main UI text, labels, table data. Incredible legibility for dense data."
+      },
+      "mono": {
+        "family": "IBM Plex Mono",
+        "weights": ["400", "500"],
+        "usage": "Invoices, SKUs, financial numbers, status codes."
+      }
+    },
+    "hierarchy": {
+      "h1": "text-3xl sm:text-4xl font-bold tracking-tight text-slate-900",
+      "h2": "text-2xl font-semibold tracking-tight text-slate-800",
+      "h3": "text-lg font-medium tracking-tight text-slate-800",
+      "body": "text-sm text-slate-700 leading-tight",
+      "small_label": "text-xs font-semibold uppercase tracking-[0.05em] text-slate-500",
+      "numbers": "font-mono text-sm tracking-tight"
+    }
+  },
+  "colors": {
+    "palette": {
+      "background_app": "#F8FAFC",
+      "background_surface": "#FFFFFF",
+      "sidebar_background": "#0F172A",
+      "sidebar_text": "#F8FAFC",
+      "sidebar_active": "#1E293B",
+      "border": "#E2E8F0",
+      "border_focus": "#CBD5E1",
+      "text_primary": "#0F172A",
+      "text_secondary": "#475569",
+      "text_tertiary": "#64748B",
+      "primary_accent": "#EA580C",
+      "primary_accent_hover": "#C2410C",
+      "status_success": "#10B981",
+      "status_warning": "#F59E0B",
+      "status_error": "#EF4444",
+      "status_info": "#3B82F6"
+    },
+    "rules": {
+      "gradients": "BANNED. Use flat colors and 1px crisp borders only.",
+      "shadows": "Minimal. Rely on 1px borders (Grid Borders style) for separation rather than soft shadows.",
+      "ctas": "Primary buttons use primary_accent (#EA580C). Secondary buttons are transparent with 1px border. Never use primary accent for non-interactive elements."
+    }
+  },
+  "layout_and_spacing": {
+    "grid_system": "The 'Control Room' Grid Protocol",
+    "spacing_scale": {
+      "tight_data": "p-2 or p-3 (for tables and dense lists)",
+      "card_padding": "p-5 or p-6",
+      "section_gap": "gap-6",
+      "widget_gap": "gap-4"
+    },
+    "border_radius": "rounded-md (6px maximum). Avoid pill shapes to maintain the structured, enterprise feel.",
+    "dashboard_rules": {
+      "kpi_cards": "col-span-1. Flat background, 1px border. Use monospaced numbers for metrics.",
+      "data_tables": "col-span-full or col-span-3. No outer shadow. Tight rows.",
+      "alignment": "Numbers right-aligned. Text left-aligned. Actions right-aligned."
+    }
+  },
+  "components": {
+    "sidebar": "Dark mode styling (#0F172A) on the left sidebar to anchor the layout. Uses Phosphor icons. Collapsible to icons-only for more screen real estate.",
+    "tables": "shadcn/ui Table. Override default padding to 'py-2 px-3' for higher data density. Header text should be 'text-xs uppercase tracking-wide text-slate-500'. Highlight hover row 'hover:bg-slate-50'.",
+    "forms": "shadcn/ui Input, Select, DatePicker. Use 'h-8' or 'h-9' (compact) instead of 'h-10'. Labels are 'text-sm font-medium'. Wrap multi-line forms (like Invoices) in 1px border panels with 'bg-slate-50' header rows.",
+    "modals": "shadcn/ui Dialog. Max-width 'md:max-w-2xl'. Include sticky footer with Primary/Secondary actions.",
+    "toast": "Sonner. Position 'bottom-right'. Style: Flat, 1px border, left-border colored based on status (Red/Green/Orange).",
+    "tabs": "shadcn/ui Tabs. Override 'h-9' to 'h-auto'. Use for 'Detail Screens' (e.g., Customer Details -> Info, Invoices, Payments).",
+    "icons": "@phosphor-icons/react (Weight: Regular or Bold for active states, minimal detail for dense grids)."
+  },
+  "motion_and_interactions": {
+    "rules": "Utilitarian motion. Fast and precise.",
+    "hover_states": "Tables: 'bg-slate-50'. Buttons: slight darkening. Links: underline offset-2.",
+    "focus_states": "Ring 2px 'ring-orange-500/50' ring-offset-1.",
+    "transitions": "transition-colors duration-150 ease-in-out."
+  },
+  "accessibility": {
+    "contrast": "Text must pass WCAG AA (4.5:1). Dark sidebar ensures high contrast for nav items.",
+    "testing": "All interactive elements MUST have 'data-testid' (e.g., 'data-testid=\"login-submit-button\"').",
+    "aria": "Include 'aria-label' for icon-only buttons (like Edit/Delete in tables)."
+  },
+  "media": {
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1771530789155-b1f03fbf82b5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNDR8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwd2FyZWhvdXNlJTIwaW50ZXJpb3J8ZW58MHx8fHwxNzgyNTgzODc2fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Empty modern warehouse interior with polished concrete floor",
+        "category": "auth_background",
+        "placement": "Use as the right-side split panel image on the login screen. Apply a 'bg-black/20' overlay or an orange-tinted multiply blend if needed for brand consistency."
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Initialize React with Vite, install Tailwind and Shadcn UI.",
+    "Install specific fonts: Chivo (Google Fonts), IBM Plex Sans (Google Fonts), IBM Plex Mono (Google Fonts).",
+    "Install Phosphor Icons: yarn add @phosphor-icons/react.",
+    "Setup global CSS with background colors and tight letter spacing overrides for headings.",
+    "Build standard Layout with a fixed, collapsible dark sidebar and a top header containing breadcrumbs and user profile.",
+    "Implement compact Table components. Ensure Shadcn Table cells use p-2 or p-3.",
+    "Create reusable Form modules (Input, Select, Label) using h-8 compact sizing.",
+    "Ensure all buttons, inputs, and links have a data-testid attribute in kebab-case."
+  ]
+}
