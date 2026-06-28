@@ -1,0 +1,107 @@
+<?php
+namespace App\Core;
+
+final class App
+{
+    private static array $config = [];
+
+    public static function setConfig(array $cfg): void { self::$config = $cfg; }
+    public static function config(?string $key = null) { return $key ? (self::$config[$key] ?? null) : self::$config; }
+
+    public static function ensureAdminSeed(): void
+    {
+        try {
+            $admin = self::$config['admin'];
+            $pdo = Database::pdo();
+            $row = $pdo->prepare('SELECT id, password_hash FROM users WHERE email = ?');
+            $row->execute([$admin['email']]);
+            $u = $row->fetch();
+            if (!$u) {
+                $stmt = $pdo->prepare('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, "admin")');
+                $stmt->execute([$admin['email'], password_hash($admin['password'], PASSWORD_BCRYPT), $admin['name']]);
+            } elseif (!password_verify($admin['password'], $u['password_hash'])) {
+                // Ensure default password works (fixes broken seed hash from schema.sql)
+                $stmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+                $stmt->execute([password_hash($admin['password'], PASSWORD_BCRYPT), $u['id']]);
+            }
+        } catch (\Throwable $e) {
+            // ignore — likely DB not set up yet
+        }
+    }
+
+    public function run(): void
+    {
+        $router = new Router();
+        $this->registerRoutes($router);
+
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $uri    = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        // strip base path if configured
+        $base = parse_url(self::$config['base_url'] ?? '', PHP_URL_PATH);
+        if ($base && str_starts_with($uri, $base)) {
+            $uri = substr($uri, strlen($base));
+            if ($uri === '' || $uri[0] !== '/') $uri = '/' . $uri;
+        }
+
+        try {
+            $router->dispatch($method, $uri);
+        } catch (\Throwable $e) {
+            http_response_code(500);
+            if (str_starts_with($uri, '/api/')) {
+                header('Content-Type: application/json');
+                echo json_encode(['ok' => false, 'error' => $e->getMessage()]);
+            } else {
+                echo '<h1>Server error</h1><pre>' . htmlspecialchars($e->getMessage()) . '</pre>';
+            }
+        }
+    }
+
+    private function registerRoutes(Router $r): void
+    {
+        // Public
+        $r->get('/login',  ['App\\Controllers\\AuthController', 'showLogin']);
+        $r->post('/api/auth/login',  ['App\\Controllers\\AuthController', 'login']);
+        $r->post('/api/auth/logout', ['App\\Controllers\\AuthController', 'logout']);
+
+        // Pages (auth required)
+        $r->get('/',           ['App\\Controllers\\DashboardController', 'index']);
+        $r->get('/products',   ['App\\Controllers\\ProductsController',  'index']);
+        $r->get('/customers',  ['App\\Controllers\\CustomersController', 'index']);
+        $r->get('/suppliers',  ['App\\Controllers\\SuppliersController', 'index']);
+        $r->get('/sales',      ['App\\Controllers\\SalesController',     'index']);
+        $r->get('/sales/new',  ['App\\Controllers\\SalesController',     'create']);
+        $r->get('/sales/{id}', ['App\\Controllers\\SalesController',     'view']);
+        $r->get('/purchases',  ['App\\Controllers\\PurchasesController', 'index']);
+        $r->get('/reports',    ['App\\Controllers\\ReportsController',   'index']);
+        $r->get('/users',      ['App\\Controllers\\UsersController',     'index']);
+
+        // API
+        $r->get('/api/dashboard/stats', ['App\\Controllers\\DashboardController', 'stats']);
+
+        foreach (['products','customers','suppliers'] as $res) {
+            $ctrl = 'App\\Controllers\\' . ucfirst($res) . 'Controller';
+            $r->get("/api/$res",        [$ctrl, 'list']);
+            $r->post("/api/$res",       [$ctrl, 'create']);
+            $r->put("/api/$res/{id}",   [$ctrl, 'update']);
+            $r->delete("/api/$res/{id}",[$ctrl, 'delete']);
+        }
+
+        $r->get('/api/sales',              ['App\\Controllers\\SalesController', 'apiList']);
+        $r->get('/api/sales/{id}',         ['App\\Controllers\\SalesController', 'apiGet']);
+        $r->post('/api/sales',             ['App\\Controllers\\SalesController', 'apiCreate']);
+        $r->post('/api/sales/{id}/payment',['App\\Controllers\\SalesController', 'apiPayment']);
+        $r->delete('/api/sales/{id}',      ['App\\Controllers\\SalesController', 'apiDelete']);
+
+        $r->get('/api/purchases',     ['App\\Controllers\\PurchasesController', 'apiList']);
+        $r->post('/api/purchases',    ['App\\Controllers\\PurchasesController', 'apiCreate']);
+        $r->delete('/api/purchases/{id}', ['App\\Controllers\\PurchasesController', 'apiDelete']);
+
+        $r->get('/api/users',            ['App\\Controllers\\UsersController', 'apiList']);
+        $r->post('/api/users',           ['App\\Controllers\\UsersController', 'apiCreate']);
+        $r->delete('/api/users/{id}',    ['App\\Controllers\\UsersController', 'apiDelete']);
+
+        $r->get('/api/reports/sales-by-customer', ['App\\Controllers\\ReportsController', 'salesByCustomer']);
+        $r->get('/api/reports/sales-by-product',  ['App\\Controllers\\ReportsController', 'salesByProduct']);
+        $r->get('/api/reports/invoice-aging',     ['App\\Controllers\\ReportsController', 'invoiceAging']);
+    }
+}

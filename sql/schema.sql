@@ -1,0 +1,128 @@
+-- StockFlow schema
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS sale_items;
+DROP TABLE IF EXISTS purchase_items;
+DROP TABLE IF EXISTS sales;
+DROP TABLE IF EXISTS purchases;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS suppliers;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(190) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(120) NOT NULL,
+    role ENUM('admin','staff') NOT NULL DEFAULT 'staff',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE products (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sku VARCHAR(64) NOT NULL UNIQUE,
+    name VARCHAR(190) NOT NULL,
+    category VARCHAR(80) DEFAULT NULL,
+    unit VARCHAR(20) NOT NULL DEFAULT 'pcs',
+    cost_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+    sale_price DECIMAL(12,2) NOT NULL DEFAULT 0,
+    stock DECIMAL(12,2) NOT NULL DEFAULT 0,
+    reorder_level DECIMAL(12,2) NOT NULL DEFAULT 0,
+    description TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_products_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE customers (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(190) NOT NULL,
+    email VARCHAR(190) DEFAULT NULL,
+    phone VARCHAR(40) DEFAULT NULL,
+    address VARCHAR(255) DEFAULT NULL,
+    balance DECIMAL(12,2) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_customers_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE suppliers (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(190) NOT NULL,
+    email VARCHAR(190) DEFAULT NULL,
+    phone VARCHAR(40) DEFAULT NULL,
+    address VARCHAR(255) DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_suppliers_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE sales (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    invoice_no VARCHAR(32) NOT NULL UNIQUE,
+    customer_id INT UNSIGNED DEFAULT NULL,
+    customer_name VARCHAR(190) NOT NULL,
+    sale_date DATE NOT NULL,
+    subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
+    discount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    tax DECIMAL(12,2) NOT NULL DEFAULT 0,
+    total DECIMAL(12,2) NOT NULL DEFAULT 0,
+    paid DECIMAL(12,2) NOT NULL DEFAULT 0,
+    balance DECIMAL(12,2) NOT NULL DEFAULT 0,
+    status ENUM('unpaid','partial','paid') NOT NULL DEFAULT 'unpaid',
+    notes TEXT,
+    created_by INT UNSIGNED DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_sales_date (sale_date),
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE sale_items (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sale_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
+    sku VARCHAR(64) NOT NULL,
+    name VARCHAR(190) NOT NULL,
+    qty DECIMAL(12,2) NOT NULL,
+    price DECIMAL(12,2) NOT NULL,
+    total DECIMAL(12,2) NOT NULL,
+    FOREIGN KEY (sale_id) REFERENCES sales(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE purchases (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ref_no VARCHAR(32) NOT NULL UNIQUE,
+    supplier_id INT UNSIGNED DEFAULT NULL,
+    supplier_name VARCHAR(190) NOT NULL,
+    purchase_date DATE NOT NULL,
+    subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
+    tax DECIMAL(12,2) NOT NULL DEFAULT 0,
+    total DECIMAL(12,2) NOT NULL DEFAULT 0,
+    notes TEXT,
+    created_by INT UNSIGNED DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_purchases_date (purchase_date),
+    FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE purchase_items (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    purchase_id INT UNSIGNED NOT NULL,
+    product_id INT UNSIGNED NOT NULL,
+    sku VARCHAR(64) NOT NULL,
+    name VARCHAR(190) NOT NULL,
+    qty DECIMAL(12,2) NOT NULL,
+    price DECIMAL(12,2) NOT NULL,
+    total DECIMAL(12,2) NOT NULL,
+    FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- Seed admin (password: admin123)
+-- Hash generated with: password_hash('admin123', PASSWORD_BCRYPT)
+INSERT INTO users (email, password_hash, name, role)
+VALUES ('admin@stockflow.test', '$2y$10$wH8nC1m3RnVbX2VpQjV2Z.6Z7QkA5sP3o5K8jHbN3vS5jK2K8L7Sa', 'Administrator', 'admin');
