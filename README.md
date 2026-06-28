@@ -31,7 +31,11 @@ config.php         DB credentials, app config (NOT committed in real projects)
 
 ## Setup (5 minutes)
 
-1. **Create the database** (in MySQL):
+1. **Install Composer dependencies** (for XLSX/PDF/email):
+   ```bash
+   composer install
+   ```
+2. **Create the database** (in MySQL):
    ```sql
    CREATE DATABASE stockflow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
    ```
@@ -68,3 +72,23 @@ config.php         DB credentials, app config (NOT committed in real projects)
 - bcrypt password hashing via `password_hash()` / `password_verify()`
 - Role-based access in controllers
 - Session regeneration on login
+
+## SMTP (for email-invoice)
+Set these env vars before starting the server (the values below match Mailtrap’s sandbox):
+```bash
+export SMTP_HOST=smtp.mailtrap.io
+export SMTP_PORT=2525
+export SMTP_USER=your_username
+export SMTP_PASS=your_password
+export SMTP_SECURE=tls
+export SMTP_FROM=no-reply@yourdomain.com
+export SMTP_FROM_NAME="StockFlow"
+```
+Then on any invoice detail page click **Email** → enter recipient → a PDF is generated via Dompdf and sent via PHPMailer.
+
+## Exports
+- **Sales list → XLSX**: button on `/sales` (uses PhpSpreadsheet) → `GET /api/exports/sales.xlsx`
+- **Invoice → PDF**: button on invoice detail → `GET /api/exports/invoice/{id}.pdf` (`?download=1` to force download)
+
+## Edit an existing sale
+On the invoice detail page click **Edit**. The form pre-loads the existing lines; on save, prior stock is restored and the new lines are applied atomically (transaction).

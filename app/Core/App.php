@@ -103,5 +103,14 @@ final class App
         $r->get('/api/reports/sales-by-customer', ['App\\Controllers\\ReportsController', 'salesByCustomer']);
         $r->get('/api/reports/sales-by-product',  ['App\\Controllers\\ReportsController', 'salesByProduct']);
         $r->get('/api/reports/invoice-aging',     ['App\\Controllers\\ReportsController', 'invoiceAging']);
+
+        // Exports & email
+        $r->get('/api/exports/sales.xlsx',           ['App\\Controllers\\ExportController', 'salesXlsx']);
+        $r->get('/api/exports/invoice/{id}.pdf',     ['App\\Controllers\\ExportController', 'invoicePdf']);
+        $r->post('/api/sales/{id}/email',            ['App\\Controllers\\ExportController', 'emailInvoice']);
+
+        // Edit sale
+        $r->put('/api/sales/{id}',                   ['App\\Controllers\\SalesController', 'apiUpdate']);
+        $r->get('/sales/{id}/edit',                  ['App\\Controllers\\SalesController', 'edit']);
     }
 }

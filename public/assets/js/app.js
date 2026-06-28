@@ -261,6 +261,64 @@ const SF = (function(){
     $('#deleteSale').on('click', function(){
       confirmAction('Delete this invoice?', ()=> api.del('/api/sales/'+id).then(()=>{ iziToast.success({title:'Deleted',position:'bottomRight'}); setTimeout(()=>location.href=baseUrl+'/sales',300); }));
     });
+    $('#emailInvoice').on('click', function(){
+      iziToast.question({
+        timeout:false, close:false, overlay:true, position:'center',
+        title:'Email invoice', message:'Recipient email:', inputs:[['<input type="email" placeholder="customer@example.com">','keyup',function(){}, true]],
+        buttons:[
+          ['<button><b>SEND</b></button>', (inst,toast,btn,e,inputs)=>{
+            const email = inputs[0].value.trim();
+            inst.hide({},toast,'button');
+            api.post('/api/sales/'+id+'/email', {email: email}).then((r)=> iziToast.success({title:'Sent to '+r.sent_to,position:'bottomRight'}));
+          }, true],
+          ['<button>CANCEL</button>', (inst,toast)=> inst.hide({},toast,'button')]
+        ]
+      });
+    });
+  }
+
+  function saleEdit(sale){
+    let products=[], customers=[], lines = (sale.items||[]).map(it => ({product_id:+it.product_id, sku:it.sku, name:it.name, qty:Number(it.qty), price:Number(it.price), total:Number(it.total)}));
+    Promise.all([api.get('/api/products'), api.get('/api/customers')]).then(([p,c])=>{
+      products = p; customers = c;
+      $('#customerSelect').append(customers.map(x=>`<option value="${x.id}" ${String(x.id)===String(sale.customer_id||'')?'selected':''}>${esc(x.name)}</option>`).join(''));
+      render();
+    });
+    $('#customerSelect').on('change', function(){ const c=customers.find(x=>String(x.id)===this.value); $('#customerName').val(c?c.name:'Walk-in customer'); });
+    $('#addLine').on('click', ()=>{ lines.push({product_id:'',sku:'',name:'',qty:1,price:0,total:0}); render(); });
+    function render(){
+      $('#lines').html(lines.length===0
+        ? '<tr><td colspan="5" class="text-center text-muted py-3 small">No items.</td></tr>'
+        : lines.map((it,i)=>`<tr>
+            <td><select class="form-select form-select-sm ln-prod" data-i="${i}"><option value="">— pick product —</option>${products.map(p=>`<option value="${p.id}" ${String(p.id)===String(it.product_id)?'selected':''}>${esc(p.sku)} — ${esc(p.name)} (stock ${p.stock})</option>`).join('')}</select></td>
+            <td class="text-end"><input class="form-control form-control-sm text-end ln-qty" data-i="${i}" type="number" step="any" style="width:80px" value="${it.qty}"></td>
+            <td class="text-end"><input class="form-control form-control-sm text-end ln-price" data-i="${i}" type="number" step="any" style="width:100px" value="${it.price}"></td>
+            <td class="text-end text-num">${money(it.total)}</td>
+            <td class="text-end"><button class="btn btn-sm btn-link text-danger p-0 ln-del" data-i="${i}"><i class="bi bi-trash"></i></button></td>
+          </tr>`).join(''));
+      $('.ln-prod').on('change', function(){ const i=+$(this).data('i'),pid=this.value; const p=products.find(x=>String(x.id)===pid); if(p){lines[i].product_id=p.id;lines[i].sku=p.sku;lines[i].name=p.name;lines[i].price=Number(p.sale_price);} lines[i].total=Number(lines[i].qty)*Number(lines[i].price); render(); });
+      $('.ln-qty').on('input', function(){ const i=+$(this).data('i'); lines[i].qty=Number(this.value||0); lines[i].total=lines[i].qty*Number(lines[i].price||0); render(); });
+      $('.ln-price').on('input', function(){ const i=+$(this).data('i'); lines[i].price=Number(this.value||0); lines[i].total=lines[i].qty*lines[i].price; render(); });
+      $('.ln-del').on('click', function(){ lines.splice(+$(this).data('i'),1); render(); });
+      totals();
+    }
+    function totals(){
+      const sub = lines.reduce((s,it)=>s+Number(it.total||0),0);
+      const tot = Math.max(0, sub - Number($('#discount').val()||0) + Number($('#tax').val()||0));
+      $('#subtotal').text(money(sub)); $('#total').text(money(tot));
+      $('#balance').text(money(Math.max(0, tot - Number($('#paid').val()||0))));
+    }
+    $('#discount,#tax,#paid').on('input', totals);
+    $('#updateSale').on('click', function(){
+      const id = $(this).data('id');
+      if(lines.length===0) return iziToast.error({title:'Error',message:'Add at least one line item',position:'bottomRight'});
+      if(lines.some(it=>!it.product_id||Number(it.qty)<=0)) return iziToast.error({title:'Error',message:'Each line needs a product and qty>0',position:'bottomRight'});
+      api.put('/api/sales/'+id, {
+        customer_id: $('#customerSelect').val() || null,
+        customer_name: $('#customerName').val(),
+        items: lines, discount: Number($('#discount').val()||0), tax: Number($('#tax').val()||0), paid: Number($('#paid').val()||0), notes: $('#notes').val(),
+      }).then(()=>{ iziToast.success({title:'Invoice updated',position:'bottomRight'}); setTimeout(()=>location.href=baseUrl+'/sales/'+id,400); });
+    });
   }
 
   function purchases(){
@@ -371,5 +429,5 @@ const SF = (function(){
 
   function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
-  return { dashboard, products, party, sales, saleNew, saleView, purchases, reports, users };
+  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users };
 })();

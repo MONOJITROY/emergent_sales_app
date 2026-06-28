@@ -6,6 +6,68 @@ use App\Models\Sale; use App\Models\Product;
 final class SalesController extends Controller {
     public function index(Request $r): void { Auth::user(); $this->view('sales/index', ['_active'=>'sales']); }
     public function create(Request $r): void { Auth::user(); $this->view('sales/new', ['_active'=>'sales']); }
+    public function edit(Request $r): void {
+        Auth::user();
+        $sale = Sale::withItems((int)$r->param('id'));
+        if (!$sale) { http_response_code(404); echo '<h1>Not found</h1>'; return; }
+        $this->view('sales/edit', ['_active'=>'sales','sale'=>$sale]);
+    }
+
+    public function apiUpdate(Request $r): void {
+        Auth::user(); $this->requireCsrf();
+        $id = (int)$r->param('id');
+        $sale = Sale::withItems($id);
+        if (!$sale) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
+        $items = $r->input('items', []);
+        if (!is_array($items) || count($items)===0) { $this->json(['ok'=>false,'error'=>'At least one line item is required'],400); return; }
+        $pdo = Database::pdo(); $pdo->beginTransaction();
+        try {
+            // Restore stock from old items
+            $inc = $pdo->prepare('UPDATE products SET stock = stock + ? WHERE id = ?');
+            foreach ($sale['items'] as $it) { $inc->execute([(float)$it['qty'], (int)$it['product_id']]); }
+            // Reverse old customer balance
+            if (!empty($sale['customer_id']) && (float)$sale['balance'] > 0) {
+                $pdo->prepare('UPDATE customers SET balance = balance - ? WHERE id = ?')->execute([(float)$sale['balance'], (int)$sale['customer_id']]);
+            }
+            // Delete old items
+            $pdo->prepare('DELETE FROM sale_items WHERE sale_id = ?')->execute([$id]);
+
+            // Recompute
+            $subtotal = 0.0; foreach ($items as $it) { $subtotal += (float)($it['total'] ?? ((float)$it['qty']*(float)$it['price'])); }
+            $discount = (float)$r->input('discount',0); $tax = (float)$r->input('tax',0);
+            $total = max(0, $subtotal - $discount + $tax);
+            $paid = min((float)$r->input('paid', (float)$sale['paid']), $total);
+            $balance = round($total - $paid, 2);
+            $status = $balance <= 0 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid');
+            $custId = $r->input('customer_id') ? (int)$r->input('customer_id') : null;
+
+            Sale::update($id, [
+                'customer_id'   => $custId,
+                'customer_name' => trim((string)$r->input('customer_name', $sale['customer_name'])),
+                'subtotal'      => round($subtotal,2),
+                'discount'      => $discount, 'tax' => $tax,
+                'total'         => round($total,2),
+                'paid'          => round($paid,2),
+                'balance'       => $balance,
+                'status'        => $status,
+                'notes'         => (string)$r->input('notes', $sale['notes'] ?? ''),
+            ]);
+            $insItem = $pdo->prepare('INSERT INTO sale_items (sale_id, product_id, sku, name, qty, price, total) VALUES (?,?,?,?,?,?,?)');
+            $dec = $pdo->prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
+            foreach ($items as $it) {
+                $pid=(int)$it['product_id']; $qty=(float)$it['qty']; $price=(float)$it['price']; $tot=(float)($it['total'] ?? ($qty*$price));
+                $insItem->execute([$id, $pid, (string)$it['sku'], (string)$it['name'], $qty, $price, $tot]);
+                $dec->execute([$qty, $pid]);
+            }
+            if ($custId && $balance > 0) {
+                $pdo->prepare('UPDATE customers SET balance = balance + ? WHERE id = ?')->execute([$balance, $custId]);
+            }
+            $pdo->commit();
+            $this->json(Sale::withItems($id));
+        } catch (\Throwable $e) {
+            $pdo->rollBack(); $this->json(['ok'=>false,'error'=>$e->getMessage()],500);
+        }
+    }
     public function view(Request $r): void {
         Auth::user();
         $sale = Sale::withItems((int)$r->param('id'));

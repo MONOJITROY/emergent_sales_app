@@ -14,6 +14,10 @@ if (PHP_SAPI === 'cli-server') {
 
 require __DIR__ . '/../app/Core/Autoload.php';
 \App\Core\Autoload::register();
+// Composer autoload (PhpSpreadsheet, Dompdf, PHPMailer) — optional
+if (is_file(__DIR__ . '/../vendor/autoload.php')) {
+    require __DIR__ . '/../vendor/autoload.php';
+}
 
 $config = require __DIR__ . '/../config.php';
 \App\Core\Database::configure($config['db']);

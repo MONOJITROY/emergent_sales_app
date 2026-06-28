@@ -3,6 +3,9 @@
   <a href="<?= View::e($_baseUrl) ?>/sales" class="small text-muted text-decoration-none"><i class="bi bi-arrow-left"></i> Back</a>
   <div class="d-flex gap-2">
     <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="bi bi-printer me-1"></i>Print</button>
+    <a class="btn btn-sm btn-outline-secondary" href="<?= View::e($_baseUrl) ?>/api/exports/invoice/<?= (int)$sale['id'] ?>.pdf" target="_blank"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
+    <button class="btn btn-sm btn-outline-secondary" id="emailInvoice" data-id="<?= (int)$sale['id'] ?>"><i class="bi bi-envelope me-1"></i>Email</button>
+    <a class="btn btn-sm btn-outline-secondary" href="<?= View::e($_baseUrl) ?>/sales/<?= (int)$sale['id'] ?>/edit"><i class="bi bi-pencil me-1"></i>Edit</a>
     <button class="btn btn-sm btn-outline-danger" id="deleteSale" data-id="<?= (int)$sale['id'] ?>"><i class="bi bi-trash me-1"></i>Delete</button>
   </div>
 </div>

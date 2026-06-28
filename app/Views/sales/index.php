@@ -6,6 +6,7 @@
       <input class="form-control" id="searchInput" placeholder="Search invoice or customer…">
     </div>
     <a class="btn btn-sm sf-btn-primary" href="<?= htmlspecialchars($_baseUrl) ?>/sales/new"><i class="bi bi-plus-lg me-1"></i>New Sale</a>
+    <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($_baseUrl) ?>/api/exports/sales.xlsx" target="_blank"><i class="bi bi-file-earmark-excel me-1"></i>Export XLSX</a>
   </div>
 </div>
 <div class="card sf-card"><div class="table-responsive"><table class="table table-sm align-middle sf-table mb-0">
