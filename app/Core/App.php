@@ -34,21 +34,32 @@ final class App
         $router = new Router();
         $this->registerRoutes($router);
 
-        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $uri    = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        $method     = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $reqUri     = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+        $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');   // /<sub>/public/index.php
+        $scriptDir  = rtrim(dirname($scriptName), '/');                          // /<sub>/public
+        $pathInfo   = $_SERVER['PATH_INFO'] ?? '';
 
-        // Auto-detect base path from the front controller location.
-        // e.g. SCRIPT_NAME = /emergent_sales_app/public/index.php  =>  base = /emergent_sales_app/public
-        $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
-        $base = parse_url(self::$config['base_url'] ?? '', PHP_URL_PATH);
-        if (!$base && $scriptDir !== '' && $scriptDir !== '/') {
-            $base = $scriptDir;
-            // Persist for views/asset links
-            self::$config['base_url'] = $base;
+        // Detect whether Apache mod_rewrite is active (so /public/login works without index.php).
+        $rewriteOn = function_exists('apache_get_modules') && in_array('mod_rewrite', apache_get_modules(), true);
+
+        // Compute URI to route on
+        if ($pathInfo !== '') {
+            $uri = $pathInfo;                                                    // /public/index.php/login  -> /login
+        } elseif ($reqUri === $scriptName || $reqUri === $scriptName . '/') {
+            $uri = '/';                                                          // direct /public/index.php
+        } elseif ($scriptDir !== '' && $scriptDir !== '/' && str_starts_with($reqUri, $scriptDir)) {
+            $uri = substr($reqUri, strlen($scriptDir)) ?: '/';                   // /public/login -> /login (rewrite case)
+        } else {
+            $uri = $reqUri;
         }
-        if ($base && str_starts_with($uri, $base)) {
-            $uri = substr($uri, strlen($base));
-            if ($uri === '' || $uri[0] !== '/') $uri = '/' . $uri;
+        if ($uri === '') $uri = '/';
+
+        // Base URL for navigation/assets — if no rewrite, route everything through index.php so PATH_INFO is used.
+        if (empty(self::$config['base_url'])) {
+            self::$config['base_url']     = $rewriteOn ? $scriptDir : $scriptName;  // .../public  OR  .../public/index.php
+            self::$config['asset_base']   = $scriptDir;                              // assets always served directly
+            self::$config['rewrite_on']   = $rewriteOn;
         }
 
         try {

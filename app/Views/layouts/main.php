@@ -5,7 +5,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/css/iziToast.min.css" rel="stylesheet">
-<link href="<?= View::e($_baseUrl) ?>/assets/css/app.css" rel="stylesheet">
+<link href="<?= View::e($_assetUrl) ?>/assets/css/app.css" rel="stylesheet">
 <meta name="csrf-token" content="<?= View::e($_csrf) ?>">
 <meta name="base-url" content="<?= View::e($_baseUrl) ?>">
 </head><body>
@@ -57,5 +57,5 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/js/iziToast.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script src="<?= View::e($_baseUrl) ?>/assets/js/app.js"></script>
+<script src="<?= View::e($_assetUrl) ?>/assets/js/app.js"></script>
 </body></html>

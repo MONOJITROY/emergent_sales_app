@@ -11,6 +11,7 @@ final class View
         $data['_csrf']     = Csrf::token();
         $data['_user']     = Auth::check();
         $data['_baseUrl']  = App::config('base_url') ?: '';
+        $data['_assetUrl'] = App::config('asset_base') ?: ($data['_baseUrl']);
         $data['_appName']  = App::config('app_name') ?: 'StockFlow';
         $data['_active']   = $data['_active'] ?? '';
         return $this->renderFile("layouts/$layout", $data);

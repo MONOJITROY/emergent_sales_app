@@ -1,11 +1,11 @@
-<?php use App\Core\View; $base = rtrim((string)\App\Core\App::config('base_url'), '/'); ?><!doctype html>
+<?php use App\Core\View; $base = rtrim((string)\App\Core\App::config('base_url'), '/'); $assetBase = rtrim((string)(\App\Core\App::config('asset_base') ?: $base), '/'); ?><!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sign in · StockFlow</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/css/iziToast.min.css" rel="stylesheet">
-<link href="<?= View::e($base) ?>/assets/css/app.css" rel="stylesheet">
+<link href="<?= View::e($assetBase) ?>/assets/css/app.css" rel="stylesheet">
 <meta name="csrf-token" content="<?= View::e(\App\Core\Csrf::token()) ?>">
 <meta name="base-url" content="<?= View::e($base) ?>">
 </head><body class="sf-auth">
@@ -45,5 +45,5 @@
 </div></div>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/js/iziToast.min.js"></script>
-<script src="<?= View::e($base) ?>/assets/js/app.js"></script>
+<script src="<?= View::e($assetBase) ?>/assets/js/app.js"></script>
 </body></html>
