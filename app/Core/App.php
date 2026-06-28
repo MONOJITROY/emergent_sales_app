@@ -36,8 +36,16 @@ final class App
 
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $uri    = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-        // strip base path if configured
+
+        // Auto-detect base path from the front controller location.
+        // e.g. SCRIPT_NAME = /emergent_sales_app/public/index.php  =>  base = /emergent_sales_app/public
+        $scriptDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/');
         $base = parse_url(self::$config['base_url'] ?? '', PHP_URL_PATH);
+        if (!$base && $scriptDir !== '' && $scriptDir !== '/') {
+            $base = $scriptDir;
+            // Persist for views/asset links
+            self::$config['base_url'] = $base;
+        }
         if ($base && str_starts_with($uri, $base)) {
             $uri = substr($uri, strlen($base));
             if ($uri === '' || $uri[0] !== '/') $uri = '/' . $uri;

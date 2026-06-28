@@ -1,4 +1,4 @@
-<?php use App\Core\View; $cfg = require dirname(__DIR__,3) . '/config.php'; $base = rtrim($cfg['base_url'],'/'); ?><!doctype html>
+<?php use App\Core\View; $base = rtrim((string)\App\Core\App::config('base_url'), '/'); ?><!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sign in · StockFlow</title>
