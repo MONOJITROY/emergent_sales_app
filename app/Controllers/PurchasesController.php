@@ -11,6 +11,8 @@ final class PurchasesController extends Controller {
         Auth::user(); $this->requireCsrf();
         $items = $r->input('items', []);
         if (!is_array($items) || count($items)===0) { $this->json(['ok'=>false,'error'=>'At least one line item is required'],400); return; }
+        $invNo = trim((string)$r->input('supplier_inv_no',''));
+        if ($invNo === '') { $this->json(['ok'=>false,'error'=>'Supplier invoice number is required'],400); return; }
         $pdo = Database::pdo(); $pdo->beginTransaction();
         try {
             $subtotal = 0.0;
@@ -22,7 +24,9 @@ final class PurchasesController extends Controller {
             $purId = Purchase::insert([
                 'ref_no'=>$refNo, 'supplier_id'=>$supId,
                 'supplier_name'=>trim((string)$r->input('supplier_name','')),
-                'purchase_date'=>date('Y-m-d'),
+                'purchase_date'=>(string)$r->input('purchase_date',date('Y-m-d')),
+                'supplier_inv_no'=>$invNo,
+                'supplier_inv_date'=>$r->input('supplier_inv_date') ?: null,
                 'subtotal'=>round($subtotal,2),'tax'=>$tax,'total'=>$total,
                 'notes'=>(string)$r->input('notes',''),
                 'created_by'=>$user['id'] ?? null,

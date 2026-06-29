@@ -91,7 +91,7 @@ final class App
         $r->get('/suppliers',  ['App\\Controllers\\SuppliersController', 'index']);
         $r->get('/sales',      ['App\\Controllers\\SalesController',     'index']);
         $r->get('/sales/new',  ['App\\Controllers\\SalesController',     'create']);
-        $r->get('/sales/{id}', ['App\\Controllers\\SalesController',     'view']);
+        $r->get('/sales/{id}', ['App\\Controllers\\SalesController',     'show']);
         $r->get('/purchases',  ['App\\Controllers\\PurchasesController', 'index']);
         $r->get('/reports',    ['App\\Controllers\\ReportsController',   'index']);
         $r->get('/users',      ['App\\Controllers\\UsersController',     'index']);

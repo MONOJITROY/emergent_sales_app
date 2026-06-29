@@ -17,7 +17,7 @@
   <div class="modal-header"><h5 class="modal-title">New purchase</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
   <div class="modal-body">
     <div class="row g-3 mb-3">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label small text-uppercase fw-semibold">Supplier</label>
         <select id="supplierSel" class="form-select form-select-sm"><option value="">— pick a supplier —</option></select>
       </div>
@@ -33,8 +33,12 @@
         <label class="form-label small text-uppercase fw-semibold">Inv No *</label>
         <input id="supplierinvno" class="form-control form-control-sm">
       </div>
-      <div class="col-md-2 c-width-150">
-        <label class="form-label small text-uppercase fw-semibold">Inv Amt (Before Tax) *</label>
+      <div class="col-md-2 datefield">
+        <label class="form-label small text-uppercase fw-semibold">Inv Date *</label>
+        <input type="date" id="supplierinvdate" class="form-control form-control-sm">
+      </div>
+      <div class="col-md-2 c-width-120">
+        <label class="form-label small text-uppercase fw-semibold" style="letter-spacing: -0.05rem;">Inv Amt (Before Tax) *</label>
         <input id="supplierinvamt" class="form-control form-control-sm">
       </div>
       <div class="col-md-2 c-width-100">

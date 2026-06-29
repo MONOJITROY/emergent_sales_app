@@ -346,8 +346,11 @@ const SF = (function(){
       });
     };
 
+    const todayStr = () => new Date().toISOString().slice(0,10);
     $('#newBtn').on('click', ()=>{
       lines=[]; $('#notes').val(''); $('#pTax').val(0); $('#supplierName').val(''); $('#supplierSel').val('');
+      $('#purchasedate').val(todayStr()); $('#supplierinvno').val(''); $('#supplierinvdate').val(todayStr());
+      $('#supplierinvamt').val(0); $('#supplierinvtaxamt').val(0); $('#supplierinvtotamt').val(0);
       Promise.all([api.get('/api/products'), api.get('/api/suppliers')]).then(([p,s])=>{
         products=p; suppliers=s;
         $('#supplierSel').html('<option value="">— pick a supplier —</option>'+suppliers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join(''));
@@ -356,6 +359,11 @@ const SF = (function(){
     });
     $('#supplierSel').on('change', function(){ const s=suppliers.find(x=>String(x.id)===this.value); $('#supplierName').val(s?s.name:''); });
     $('#addLine').on('click', ()=>{ lines.push({product_id:'',sku:'',name:'',qty:1,price:0,total:0}); renderLines(); });
+    $('#supplierinvamt, #supplierinvtaxamt').on('input', function(){
+      const amt = Number($('#supplierinvamt').val()||0);
+      const tax = Number($('#supplierinvtaxamt').val()||0);
+      $('#supplierinvtotamt').val((amt + tax).toFixed(2));
+    });
 
     function renderLines(){
       $('#lines').html(lines.length===0
@@ -377,10 +385,23 @@ const SF = (function(){
     $('#pTax').on('input', ()=>{ const sub=lines.reduce((s,it)=>s+Number(it.total||0),0); $('#pTotal').text(money(sub + Number($('#pTax').val()||0))); });
     $('#savePurchase').on('click', ()=>{
       if(!$('#supplierName').val().trim()) return iziToast.error({title:'Error',message:'Supplier name required',position:'bottomRight'});
+      if(!$('#supplierinvno').val().trim()) return iziToast.error({title:'Error',message:'Supplier invoice number is required',position:'bottomRight'});
       if(lines.length===0) return iziToast.error({title:'Error',message:'Add at least one item',position:'bottomRight'});
+      const calcSub = lines.reduce((s,it)=>s+Number(it.total||0),0);
+      const calcTax = Number($('#pTax').val()||0);
+      const calcTot = calcSub + calcTax;
+      const invAmt = Number($('#supplierinvamt').val()||0);
+      const invTax = Number($('#supplierinvtaxamt').val()||0);
+      const invTot = Number($('#supplierinvtotamt').val()||0);
+      if (Math.abs(calcSub - invAmt) > 0.009) return iziToast.error({title:'Mismatch',message:`Inv Amt (${invAmt.toFixed(2)}) doesn't match subtotal (${calcSub.toFixed(2)})`,position:'bottomRight'});
+      if (Math.abs(calcTax - invTax) > 0.009) return iziToast.error({title:'Mismatch',message:`Tax Amt (${invTax.toFixed(2)}) doesn't match calculated tax (${calcTax.toFixed(2)})`,position:'bottomRight'});
+      if (Math.abs(calcTot - invTot) > 0.009) return iziToast.error({title:'Mismatch',message:`Total Inv Amt (${invTot.toFixed(2)}) doesn't match calculated total (${calcTot.toFixed(2)})`,position:'bottomRight'});
       api.post('/api/purchases', {
         supplier_id: $('#supplierSel').val() || null,
         supplier_name: $('#supplierName').val(),
+        purchase_date: $('#purchasedate').val(),
+        supplier_inv_no: $('#supplierinvno').val().trim(),
+        supplier_inv_date: $('#supplierinvdate').val(),
         items: lines, tax: Number($('#pTax').val()||0), notes: $('#notes').val(),
       }).then((r)=>{ iziToast.success({title:`Purchase ${r.ref_no} recorded`,position:'bottomRight'}); modal.hide(); load(); });
     });

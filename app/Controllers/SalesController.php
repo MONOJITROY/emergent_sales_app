@@ -68,7 +68,7 @@ final class SalesController extends Controller {
             $pdo->rollBack(); $this->json(['ok'=>false,'error'=>$e->getMessage()],500);
         }
     }
-    public function view(Request $r): void {
+    public function show(Request $r): void {
         Auth::user();
         $sale = Sale::withItems((int)$r->param('id'));
         if (!$sale) { http_response_code(404); echo '<h1>Not found</h1>'; return; }
