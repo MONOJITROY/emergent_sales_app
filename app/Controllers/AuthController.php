@@ -4,7 +4,7 @@ use App\Core\Controller; use App\Core\Auth; use App\Models\User; use App\Core\Re
 
 final class AuthController extends Controller {
     public function showLogin(Request $r): void {
-        if (Auth::check()) { header('Location: ' . (\App\Core\App::config('base_url') ?: '') . '/'); return; }
+        if (Auth::check()) { header('Location: ' . (\App\Core\App::config('base_url') ?: '') . '/'); exit; }
         $this->view('auth/login', [], null); // standalone (no layout)
     }
     public function login(Request $r): void {
