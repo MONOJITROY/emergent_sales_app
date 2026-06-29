@@ -221,8 +221,8 @@ const SF = (function(){
         ? '<tr><td colspan="5" class="text-center text-muted py-3 small">No items yet.</td></tr>'
         : lines.map((it,i)=>`<tr>
             <td><select class="form-select form-select-sm ln-prod" data-i="${i}"><option value="">— pick product —</option>${products.map(p=>`<option value="${p.id}" ${String(p.id)===String(it.product_id)?'selected':''}>${esc(p.sku)} — ${esc(p.name)} (stock ${p.stock})</option>`).join('')}</select></td>
-            <td class="text-end"><input class="form-control form-control-sm text-end ln-qty" data-i="${i}" type="number" step="any" style="width:80px" value="${it.qty}"></td>
-            <td class="text-end"><input class="form-control form-control-sm text-end ln-price" data-i="${i}" type="number" step="any" style="width:100px" value="${it.price}"></td>
+            <td class="text-end"><input class="form-control form-control-sm text-end ln-qty" data-i="${i}" type="text" step="any" style="width:80px" value="${it.qty}"></td>
+            <td class="text-end"><input class="form-control form-control-sm text-end ln-price" data-i="${i}" type="text" step="any" style="width:100px" value="${it.price}"></td>
             <td class="text-end text-num">${money(it.total)}</td>
             <td class="text-end"><button class="btn btn-sm btn-link text-danger p-0 ln-del" data-i="${i}"><i class="bi bi-trash"></i></button></td>
           </tr>`).join(''));
@@ -362,9 +362,9 @@ const SF = (function(){
         ? '<tr><td colspan="5" class="text-center text-muted small py-2">No items.</td></tr>'
         : lines.map((it,i)=>`<tr>
             <td><select class="form-select form-select-sm pl-prod" data-i="${i}"><option value="">— pick product —</option>${products.map(p=>`<option value="${p.id}" ${String(p.id)===String(it.product_id)?'selected':''}>${esc(p.sku)} — ${esc(p.name)}</option>`).join('')}</select></td>
-            <td class="text-end"><input class="form-control form-control-sm text-end pl-qty" data-i="${i}" type="number" step="any" style="width:80px" value="${it.qty}"></td>
-            <td class="text-end"><input class="form-control form-control-sm text-end pl-price" data-i="${i}" type="number" step="any" style="width:100px" value="${it.price}"></td>
-            <td class="text-end text-num">${money(it.total)}</td>
+            <td class="text-ends"><input class="form-control form-control-sm text-ends pl-qty" data-i="${i}" type="text" step="any" style="width:80px" value="${it.qty}"></td>
+            <td class="text-ends"><input class="form-control form-control-sm text-ends pl-price" data-i="${i}" type="text" step="any" style="width:100px" value="${it.price}"></td>
+            <td class="text-ends text-num">${money(it.total)}</td>
             <td class="text-end"><button class="btn btn-sm btn-link text-danger p-0 pl-del" data-i="${i}"><i class="bi bi-trash"></i></button></td>
           </tr>`).join(''));
       $('.pl-prod').on('change',function(){ const i=+$(this).data('i'),pid=this.value; const p=products.find(x=>String(x.id)===pid); if(p){lines[i].product_id=p.id;lines[i].sku=p.sku;lines[i].name=p.name;lines[i].price=Number(p.cost_price);} lines[i].total=Number(lines[i].qty)*Number(lines[i].price); renderLines(); });

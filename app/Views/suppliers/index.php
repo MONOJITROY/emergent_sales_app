@@ -1,1 +1,1 @@
-<?php $title='Suppliers'; $sub='Vendors you purchase from.'; $endpoint='suppliers'; $showBalance=false; include __DIR__.'/../customers/index.php'; ?>
+<?php $title='Suppliers'; $sub='Vendors you purchase from.'; $endpoint='suppliers'; $showBalance=true; include __DIR__.'/../customers/index.php'; 
