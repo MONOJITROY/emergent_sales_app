@@ -9,14 +9,15 @@
   </div>
 </div>
 <div class="card sf-card"><div class="table-responsive"><table class="table table-sm align-middle sf-table mb-0">
-  <thead><tr><th>SKU</th><th>Name</th><th>Category</th><th class="text-end">Cost</th><th class="text-end">Price</th><th class="text-end">Stock</th><th class="text-end">Reorder</th><th class="text-end">Actions</th></tr></thead>
+  <thead><tr><th>HSN</th><th>SKU</th><th>Name</th><th>Category</th><th class="text-end">Cost</th><th class="text-end">Price</th><th class="text-end">Stock</th><th class="text-end">Reorder</th><th class="text-end">Actions</th></tr></thead>
   <tbody id="rows"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
 </table></div></div>
 
 <div class="modal fade" id="formModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-lg"><div class="modal-content">
   <div class="modal-header"><h5 class="modal-title">Product</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
   <form id="form"><div class="modal-body"><div class="row g-3">
-    <div class="col-md-6"><label class="form-label small text-uppercase fw-semibold">SKU *</label><input class="form-control form-control-sm" name="sku" required></div>
+    <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">HSN *</label><input class="form-control form-control-sm" name="hsn" required></div>
+    <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">SKU *</label><input class="form-control form-control-sm" name="sku" required></div>
     <div class="col-md-6"><label class="form-label small text-uppercase fw-semibold">Name *</label><input class="form-control form-control-sm" name="name" required></div>
     <div class="col-md-6"><label class="form-label small text-uppercase fw-semibold">Category</label><input class="form-control form-control-sm" name="category"></div>
     <div class="col-md-6"><label class="form-label small text-uppercase fw-semibold">Unit</label><input class="form-control form-control-sm" name="unit" value="pcs"></div>
@@ -30,4 +31,4 @@
   </form>
 </div></div></div>
 
-<script>SF.products();</script>
+<?php $GLOBALS['pageScript'] = '<script>SF.products();</script>'; ?>

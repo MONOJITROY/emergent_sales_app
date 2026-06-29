@@ -58,4 +58,5 @@
 <script src="https://cdn.jsdelivr.net/npm/izitoast@1.4.0/dist/js/iziToast.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="<?= View::e($_assetUrl) ?>/assets/js/app.js"></script>
+<?= $GLOBALS['pageScript'] ?? '' ?><?php unset($GLOBALS['pageScript']); ?>
 </body></html>

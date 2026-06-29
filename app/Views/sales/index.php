@@ -13,4 +13,5 @@
   <thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Items</th><th class="text-end">Total</th><th class="text-end">Paid</th><th class="text-end">Balance</th><th>Status</th></tr></thead>
   <tbody id="rows"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
 </table></div></div>
-<script>SF.sales();</script>
+<!-- <script>SF.sales();</script> -->
+<?php $GLOBALS['pageScript'] = '<script>SF.sales();</script>'; ?>

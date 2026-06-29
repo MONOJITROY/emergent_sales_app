@@ -15,7 +15,7 @@ final class ProductsController extends Controller {
     public function create(Request $r): void {
         Auth::user(); $this->requireCsrf();
         $d = $this->payload($r);
-        if ($d['sku'] === '' || $d['name'] === '') { $this->json(['ok'=>false,'error'=>'SKU and name required'], 400); return; }
+        if ($d['hsn'] === '' ||$d['sku'] === '' || $d['name'] === '') { $this->json(['ok'=>false,'error'=>'HSN and SKU and name required'], 400); return; }
         $id = Product::insert($d);
         $this->json(Product::find($id));
     }
@@ -31,6 +31,7 @@ final class ProductsController extends Controller {
     }
     private function payload(Request $r): array {
         return [
+            'hsn' => trim((string)$r->input('hsn','')),
             'sku' => trim((string)$r->input('sku','')),
             'name' => trim((string)$r->input('name','')),
             'category' => trim((string)$r->input('category','')),

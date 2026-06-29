@@ -102,7 +102,9 @@ const SF = (function(){
         $('#rows').html(rows.map(r => {
           const low = Number(r.reorder_level)>0 && Number(r.stock)<=Number(r.reorder_level);
           return `<tr>
-            <td class="text-num small">${esc(r.sku)}</td><td class="fw-semibold">${esc(r.name)}</td>
+            <td class="text-num small">${esc(r.hsn)}</td>
+            <td class="text-num small">${esc(r.sku)}</td>
+            <td class="fw-semibold">${esc(r.name)}</td>
             <td class="text-muted">${esc(r.category||'—')}</td>
             <td class="text-end text-num">${money(r.cost_price)}</td>
             <td class="text-end text-num">${money(r.sale_price)}</td>
@@ -125,7 +127,7 @@ const SF = (function(){
     };
     const fillForm = (r) => {
       const f = document.getElementById('form');
-      ['id','sku','name','category','unit','cost_price','sale_price','stock','reorder_level'].forEach(k => { if (f[k]) f[k].value = r ? (r[k]??'') : (k==='unit'?'pcs':(['cost_price','sale_price','stock','reorder_level'].includes(k)?0:'')); });
+      ['id','hsn','sku','name','category','unit','cost_price','sale_price','stock','reorder_level'].forEach(k => { if (f[k]) f[k].value = r ? (r[k]??'') : (k==='unit'?'pcs':(['cost_price','sale_price','stock','reorder_level'].includes(k)?0:'')); });
     };
     $('#newBtn').on('click', ()=>{ fillForm(null); modal.show(); });
     $('#form').on('submit', function(e){

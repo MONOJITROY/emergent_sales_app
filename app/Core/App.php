@@ -48,6 +48,8 @@ final class App
             $uri = $pathInfo;                                                    // /public/index.php/login  -> /login
         } elseif ($reqUri === $scriptName || $reqUri === $scriptName . '/') {
             $uri = '/';                                                          // direct /public/index.php
+        } elseif ($scriptName !== '' && str_starts_with($reqUri, $scriptName . '/')) {
+            $uri = substr($reqUri, strlen($scriptName)) ?: '/';                  // /public/index.php/login (no rewrite)
         } elseif ($scriptDir !== '' && $scriptDir !== '/' && str_starts_with($reqUri, $scriptDir)) {
             $uri = substr($reqUri, strlen($scriptDir)) ?: '/';                   // /public/login -> /login (rewrite case)
         } else {
