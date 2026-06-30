@@ -88,3 +88,7 @@ credentials.json
 *.key
 .credentials
 sql/schema.sql
+composer.json
+composer.lock
+composer.json
+composer.json

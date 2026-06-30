@@ -124,6 +124,40 @@ CREATE TABLE purchase_items (
 
 SET FOREIGN_KEY_CHECKS = 1;
 
+-- Company settings (single-row table, always id = 1)
+CREATE TABLE companies (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    company_name VARCHAR(190) NOT NULL DEFAULT '',
+    company_address VARCHAR(255) DEFAULT '',
+    company_phone VARCHAR(40) DEFAULT '',
+    company_email VARCHAR(190) DEFAULT '',
+    owner_name VARCHAR(120) DEFAULT '',
+    company_gst_no VARCHAR(40) DEFAULT '',
+    company_gst_validity DATE DEFAULT NULL,
+    company_tradelicenseno VARCHAR(60) DEFAULT '',
+    tradelicensevalidity DATE DEFAULT NULL,
+    company_website VARCHAR(190) DEFAULT '',
+    company_pan VARCHAR(40) DEFAULT '',
+    company_logo VARCHAR(255) DEFAULT '',
+    company_emailhost VARCHAR(190) DEFAULT '',
+    company_smtpauth TINYINT(1) NOT NULL DEFAULT 0,
+    company_security ENUM('ssl','tls') DEFAULT 'tls',
+    company_ssl_port INT UNSIGNED DEFAULT 587,
+    company_emailuser VARCHAR(190) DEFAULT '',
+    company_emailpassword VARCHAR(255) DEFAULT '',
+    company_fromemailid VARCHAR(190) DEFAULT '',
+    company_fromemailname VARCHAR(120) DEFAULT '',
+    company_replytoemailid VARCHAR(190) DEFAULT '',
+    company_replytoemailname VARCHAR(120) DEFAULT '',
+    company_noreplyemailid VARCHAR(190) DEFAULT '',
+    company_noreplyemailname VARCHAR(120) DEFAULT '',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Seed an initial company row
+INSERT INTO companies (id, company_name) VALUES (1, '');
+
 -- Seed admin (password: admin123)
 -- Hash generated with: password_hash('admin123', PASSWORD_BCRYPT)
 INSERT INTO users (email, password_hash, name, role)
