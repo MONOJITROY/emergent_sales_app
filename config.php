@@ -1,7 +1,7 @@
 <?php
 // ---- App configuration ----
 return [
-    'app_name'  => 'StockFlow',
+    'app_name'  => 'MediMart',
     'base_url'  => rtrim(getenv('APP_BASE_URL') ?: '', '/'), // e.g. http://localhost:8000
     'db' => [
         'host'    => getenv('DB_HOST') ?: '127.0.0.1',

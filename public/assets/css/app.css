@@ -2,7 +2,7 @@
 
 :root{
   --sf-bg:#f8fafc; --sf-surface:#fff; --sf-border:#e2e8f0;
-  --sf-sidebar:#0f172a; --sf-sidebar-active:#1e293b;
+  --sf-sidebar:#1a2d3b; --sf-sidebar-active:#1e293b;
   --sf-text:#0f172a; --sf-muted:#64748b;
   --sf-orange:#ea580c; --sf-orange-hover:#c2410c;
 }
@@ -12,7 +12,9 @@ h1,h2,h3,h4,h5,.h1,.h2,.h3,.h4,.h5{font-family:'Chivo',system-ui,sans-serif;lett
 .text-num,.text-num *{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;}
 .text-orange{color:var(--sf-orange)!important;}
 
-.sf-logo{display:inline-grid;place-items:center;width:24px;height:24px;background:var(--sf-orange);color:#fff;border-radius:3px;font-weight:700;font-size:.65rem;letter-spacing:-.02em;}
+/* .sf-auth-bg{background:linear-gradient(rgba(15,23,42,.45),rgba(15,23,42,.45)),url('../images/login-banner.png') center/cover no-repeat;} */
+/* .sf-logo{display:inline-grid;place-items:center;width:24px;height:24px;background:url('../images/logo-banner-h200.png');color:#fff;border-radius:3px;font-weight:700;font-size:.65rem;letter-spacing:-.02em;} */
+.sf-logo{display:inline-grid;place-items:center;width:204px;height:60px;background:url('../images/logo-banner-h200.png');color:#fff;border-radius:7px;font-weight:700;font-size:.65rem;letter-spacing:-.02em;}
 
 .sf-sidebar{width:232px;background:var(--sf-sidebar);}
 .sf-sidebar .sf-nav{color:#cbd5e1;border-left:2px solid transparent;border-radius:.25rem;padding:.45rem .7rem;margin-bottom:1px;display:flex;align-items:center;}
@@ -41,7 +43,7 @@ h1,h2,h3,h4,h5,.h1,.h2,.h3,.h4,.h5{font-family:'Chivo',system-ui,sans-serif;lett
 .sf-status-partial{background:#fffbeb;color:#b45309;border-color:#fcd34d;}
 .sf-status-unpaid{background:#fef2f2;color:#b91c1c;border-color:#fecaca;}
 
-.sf-auth-bg{background:linear-gradient(rgba(15,23,42,.45),rgba(15,23,42,.45)),url('https://images.unsplash.com/photo-1771530789155-b1f03fbf82b5?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;}
+.sf-auth-bg{background:linear-gradient(rgba(15,23,42,.45),rgba(15,23,42,.45)),url('../images/logo-banner-full.png') center/cover no-repeat;}
 
 .kpi{padding:1rem;border:1px solid var(--sf-border);background:#fff;border-radius:.375rem;}
 .kpi .label{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--sf-muted);font-weight:600;}
@@ -100,4 +102,8 @@ input[readonly], input[readonly]:focus {
 }
 .c-width-200 {
   max-width: 20%;
+}
+span.healthystock {
+  font-size: 4rem;
+  display: block; color:rgb(17, 160, 17);
 }

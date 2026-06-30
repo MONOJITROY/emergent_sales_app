@@ -25,7 +25,10 @@
           ['purchases','purchases','bi-cart-plus','Purchases'],
           ['reports','reports','bi-bar-chart-line','Reports'],
         ];
-        if (($_user['role'] ?? '')==='admin') $items[] = ['users','users','bi-person-gear','Users'];
+        if (($_user['role'] ?? '')==='admin') {
+          $items[] = ['company','company/settings','bi-gear','Company'];
+          $items[] = ['users','users','bi-person-gear','Users'];
+        }
         foreach ($items as $it): [$key,$path,$icon,$label] = $it;
           $active = $_active === $key ? 'active' : ''; ?>
         <a class="nav-link sf-nav <?= $active ?>" href="<?= View::e($_baseUrl) ?>/<?= $path ?>" data-testid="nav-<?= $key ?>">

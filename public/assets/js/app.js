@@ -452,5 +452,68 @@ const SF = (function(){
 
   function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
-  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users };
+  function companySettings(){
+    const load = () => {
+      api.get('/api/company/settings').then(s => {
+        if (!s) return;
+        Object.keys(s).forEach(k => {
+          const el = document.querySelector(`[name="${k}"]`);
+          if (el) {
+            if (el.type === 'checkbox') el.checked = !!s[k];
+            else el.value = s[k] ?? '';
+          }
+        });
+        // logo preview
+        if (s.company_logo) {
+          const pv = $('#logoPreview');
+          if (pv.is('img')) pv.attr('src', baseUrl + '/assets/images/' + s.company_logo);
+          else pv.replaceWith(`<img id="logoPreview" src="${baseUrl}/assets/images/${s.company_logo}" class="img-fluid mb-3" style="max-height:120px" alt="Logo">`);
+        }
+      });
+    };
+
+    // Preview logo on file select
+    $('#logoInput').on('change', function(){
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const pv = $('#logoPreview');
+          if (pv.is('img')) pv.attr('src', e.target.result);
+          else pv.replaceWith(`<img id="logoPreview" src="${e.target.result}" class="img-fluid mb-3" style="max-height:120px" alt="Logo">`);
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+
+    $('#companyForm').on('submit', function(e){
+      e.preventDefault();
+      const btn = $('#saveBtn');
+      btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Saving…');
+      const fd = new FormData(this);
+      fd.set('_csrf', csrf());
+      $.ajax({
+        url: baseUrl + '/api/company/settings',
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        headers: { 'X-CSRF-Token': csrf() },
+        dataType: 'json',
+        success: function(){
+          iziToast.success({title:'Saved', message:'Company settings updated', position:'bottomRight'});
+          btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i>Save Settings');
+          load();
+        },
+        error: function(xhr){
+          btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i>Save Settings');
+          const msg = (xhr.responseJSON && xhr.responseJSON.error) || xhr.statusText || 'Save failed';
+          iziToast.error({title:'Error', message: String(msg), position:'bottomRight'});
+        }
+      });
+    });
+
+    load();
+  }
+
+  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings };
 })();

@@ -94,7 +94,8 @@ final class App
         $r->get('/sales/{id}', ['App\\Controllers\\SalesController',     'show']);
         $r->get('/purchases',  ['App\\Controllers\\PurchasesController', 'index']);
         $r->get('/reports',    ['App\\Controllers\\ReportsController',   'index']);
-        $r->get('/users',      ['App\\Controllers\\UsersController',     'index']);
+        $r->get('/users',          ['App\\Controllers\\UsersController',     'index']);
+        $r->get('/company/settings',['App\\Controllers\\CompanyController',  'index']);
 
         // API
         $r->get('/api/dashboard/stats', ['App\\Controllers\\DashboardController', 'stats']);
@@ -120,6 +121,9 @@ final class App
         $r->get('/api/users',            ['App\\Controllers\\UsersController', 'apiList']);
         $r->post('/api/users',           ['App\\Controllers\\UsersController', 'apiCreate']);
         $r->delete('/api/users/{id}',    ['App\\Controllers\\UsersController', 'apiDelete']);
+
+        $r->get('/api/company/settings', ['App\\Controllers\\CompanyController', 'get']);
+        $r->post('/api/company/settings',['App\\Controllers\\CompanyController', 'save']);
 
         $r->get('/api/reports/sales-by-customer', ['App\\Controllers\\ReportsController', 'salesByCustomer']);
         $r->get('/api/reports/sales-by-product',  ['App\\Controllers\\ReportsController', 'salesByProduct']);
