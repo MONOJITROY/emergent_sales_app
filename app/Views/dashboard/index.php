@@ -22,4 +22,4 @@
     <tbody id="recentSales"><tr><td colspan="6" class="text-center text-muted py-3">Loading…</td></tr></tbody>
   </table></div>
 </div></div>
-<script>SF.dashboard();</script>
+<?php $GLOBALS['pageScript'] = '<script>SF.dashboard();</script>'; ?>

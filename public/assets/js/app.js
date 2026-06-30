@@ -57,7 +57,7 @@ const SF = (function(){
     api.get('/api/dashboard/stats').then((s)=>{
       const kpi = (label,value,hint) => `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">${label}</div><div class="value">${value}</div>${hint?`<div class="small text-muted mt-1">${hint}</div>`:''}</div></div>`;
       $('#kpis').html(
-        kpi("Today's sales", money(s.today_sales), 'USD') +
+        kpi("Today's sales", money(s.today_sales), 'INR') +
         kpi('Outstanding', money(s.outstanding), 'Across all unpaid') +
         kpi('Products', s.products_count, s.low_stock_count + ' low') +
         kpi('Customers', s.customers_count, '')
@@ -70,7 +70,7 @@ const SF = (function(){
       });
       $('#lowStock').html(
         (s.low_stock_items||[]).length === 0
-          ? '<li class="text-muted text-center py-3">All stock levels healthy.</li>'
+          ? '<li class="text-muted text-center py-3"><span class="healthystock">✔</span>All stock levels healthy.</li>'
           : s.low_stock_items.map(p =>
               `<li class="d-flex justify-content-between py-2 border-bottom"><div><div class="fw-semibold">${p.name}</div><div class="text-muted text-num small">${p.sku}</div></div><span class="badge sf-badge sf-status-partial">${p.stock} ${p.unit}</span></li>`
             ).join('')

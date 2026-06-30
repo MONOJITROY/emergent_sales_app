@@ -5,15 +5,17 @@ final class View
 {
     public function render(string $template, array $data = [], ?string $layout = 'main'): string
     {
-        $content = $this->renderFile($template, $data);
-        if (!$layout) return $content;
-        $data['content']   = $content;
         $data['_csrf']     = Csrf::token();
         $data['_user']     = Auth::check();
         $data['_baseUrl']  = App::config('base_url') ?: '';
         $data['_assetUrl'] = App::config('asset_base') ?: ($data['_baseUrl']);
         $data['_appName']  = App::config('app_name') ?: 'StockFlow';
         $data['_active']   = $data['_active'] ?? '';
+
+        $content = $this->renderFile($template, $data);
+        if (!$layout) return $content;
+
+        $data['content'] = $content;
         return $this->renderFile("layouts/$layout", $data);
     }
 

@@ -12,7 +12,7 @@
 <div class="d-flex min-vh-100">
   <aside class="sf-sidebar text-light flex-shrink-0 d-flex flex-column" id="sidebar">
     <div class="px-3 py-3 border-bottom border-secondary-subtle d-flex align-items-center gap-2">
-      <span class="sf-logo">SF</span><strong>StockFlow</strong>
+      <span class="sf-logo"></span><!-- <strong>Medimart-Medical Supplies</strong> -->
     </div>
     <nav class="nav flex-column p-2 small flex-grow-1">
       <?php

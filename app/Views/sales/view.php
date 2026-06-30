@@ -12,19 +12,28 @@
 
 <div class="card sf-card print-area"><div class="card-body">
   <div class="d-flex justify-content-between flex-wrap gap-3 pb-3 border-bottom mb-3">
-    <div><div class="d-flex align-items-center gap-2 mb-1"><span class="sf-logo">SF</span><strong>StockFlow</strong></div>
-      <div class="text-muted small">Sales & Inventory · Demo</div></div>
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="sf-logo"></span><!-- <strong>StockFlow</strong> -->
+      </div>
+        <!-- <div class="text-muted small">Sales & Inventory · Demo</div> -->
+    </div>
     <div class="text-end">
       <div class="text-uppercase small text-secondary fw-semibold" style="font-size:.7rem;letter-spacing:.06em">Invoice</div>
-      <div class="text-num h5 mb-0"><?= View::e($sale['invoice_no']) ?></div>
+      <div class="text-num h5 mb-0"># <?= View::e($sale['invoice_no']) ?></div>
       <div class="small text-muted">Date: <?= View::e($sale['sale_date']) ?></div>
     </div>
   </div>
   <div class="row g-3 mb-3">
-    <div class="col-md-6"><div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Bill to</div>
-      <div class="fw-semibold"><?= View::e($sale['customer_name']) ?></div></div>
-    <div class="col-md-6 text-md-end"><div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Status</div>
-      <span class="badge sf-badge sf-status-<?= View::e($sale['status']) ?>"><?= strtoupper($sale['status']) ?></span></div>
+    <div class="col-md-6">
+      <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Bill to</div>
+      <div class="fw-semibold"><?= View::e($sale['customer_name']) ?></div>
+      <div class="small text-muted">Address: <?= {{customeraddress}} ?></div>
+    </div>
+    <div class="col-md-6 text-md-end">
+      <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Status</div>
+      <span class="badge sf-badge sf-status-<?= View::e($sale['status']) ?>"><?= strtoupper($sale['status']) ?></span>
+    </div>
   </div>
   <div class="table-responsive"><table class="table table-sm sf-table">
     <thead><tr><th>SKU</th><th>Item</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">Total</th></tr></thead>
@@ -53,4 +62,4 @@
     <button class="btn btn-sm sf-btn-primary" id="payBtn" data-id="<?= (int)$sale['id'] ?>">Record</button></div>
 </div></div>
 <?php endif; ?>
-<script>SF.saleView(<?= (int)$sale['id'] ?>);</script>
+<?php $GLOBALS['pageScript'] = '<script>SF.saleView(' . (int)$sale['id'] . ');</script>'; ?>

@@ -42,4 +42,4 @@
     <button id="saveSale" class="btn sf-btn-primary w-100 mt-3" data-testid="save-sale-btn">Save Invoice</button>
   </div></div></div>
 </div>
-<script>SF.saleNew();</script>
+<?php $GLOBALS['pageScript'] = '<script>SF.saleNew();</script>'; ?>

@@ -43,4 +43,4 @@
     <button id="updateSale" class="btn sf-btn-primary w-100 mt-3" data-id="<?= (int)$sale['id'] ?>">Update Invoice</button>
   </div></div></div>
 </div>
-<script>SF.saleEdit(<?= json_encode($sale) ?>);</script>
+<?php $GLOBALS['pageScript'] = '<script>SF.saleEdit(' . json_encode($sale) . ');</script>'; ?>

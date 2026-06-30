@@ -18,4 +18,4 @@
     </div>
   </div><div class="modal-footer py-2"><button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-sm sf-btn-primary">Save</button></div></form>
 </div></div></div>
-<script>SF.users();</script>
+<?php $GLOBALS['pageScript'] = '<script>SF.users();</script>'; ?>

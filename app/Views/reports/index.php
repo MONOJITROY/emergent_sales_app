@@ -22,4 +22,4 @@
     </table></div></div>
   </div>
 </div>
-<script>SF.reports();</script>
+<?php $GLOBALS['pageScript'] = '<script>SF.reports();</script>'; ?>

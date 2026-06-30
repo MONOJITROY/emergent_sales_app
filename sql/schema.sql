@@ -96,6 +96,8 @@ CREATE TABLE purchases (
     supplier_id INT UNSIGNED DEFAULT NULL,
     supplier_name VARCHAR(190) NOT NULL,
     purchase_date DATE NOT NULL,
+    supplier_inv_no VARCHAR(70) DEFAULT NULL,
+    supplier_inv_date DATE DEFAULT NULL,
     subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
     tax DECIMAL(12,2) NOT NULL DEFAULT 0,
     total DECIMAL(12,2) NOT NULL DEFAULT 0,

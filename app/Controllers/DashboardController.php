@@ -20,7 +20,7 @@ final class DashboardController extends Controller {
             $v = (float)$pdo->query("SELECT COALESCE(SUM(total),0) FROM sales WHERE sale_date = '$d'")->fetchColumn();
             $chart[] = ['date'=>$d,'total'=>$v];
         }
-        $recent = $pdo->query('SELECT id, invoice_no, customer_name, sale_date, total, balance, status FROM sales ORDER BY id DESC LIMIT 5')->fetchAll();
+        $recent = $pdo->query('SELECT id, invoice_no, customer_name, DATE_FORMAT(sale_date,"%d-%m-%Y") AS sale_date, total, balance, status FROM sales ORDER BY id DESC LIMIT 5')->fetchAll();
         $this->json([
             'today_sales'=>$todaySales,'total_sales'=>$totalSales,'outstanding'=>$outstanding,
             'products_count'=>$productsCount,'customers_count'=>$customersCount,

@@ -12,8 +12,8 @@
 <div class="container-fluid"><div class="row min-vh-100">
   <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-4 p-md-5 bg-light">
     <div style="width:100%;max-width:380px">
-      <div class="d-flex align-items-center gap-2 mb-4"><span class="sf-logo">SF</span>
-        <div><div class="fw-bold">StockFlow</div><div class="text-muted small text-uppercase" style="font-size:.7rem;letter-spacing:.06em">Sales & Inventory</div></div>
+      <div class="d-flex align-items-center gap-2 mb-4"><span class="sf-logo"></span>
+        <!-- <div><div class="fw-bold">StockFlow</div><div class="text-muted small text-uppercase" style="font-size:.7rem;letter-spacing:.06em">Sales & Inventory</div></div> -->
       </div>
       <h1 class="h3 fw-bold mb-1">Sign in to your workspace</h1>
       <p class="text-muted small mb-4">Use the admin credentials below to explore the demo.</p>
@@ -36,11 +36,11 @@
   </div>
   <div class="col-lg-6 d-none d-lg-block p-0 position-relative">
     <div class="sf-auth-bg w-100 h-100"></div>
-    <div class="position-absolute bottom-0 start-0 p-5 text-white">
+    <!-- <div class="position-absolute bottom-0 start-0 p-5 text-white">
       <div class="text-uppercase small mb-2" style="letter-spacing:.06em;color:#fdba74">Operations · Inventory · Sales</div>
       <h2 class="display-5 fw-bold lh-1">Move stock. Close sales. Stay in control.</h2>
       <p class="small opacity-75 mt-3">A compact, no-nonsense workspace for small teams running real-world inventory.</p>
-    </div>
+    </div> -->
   </div>
 </div></div>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
