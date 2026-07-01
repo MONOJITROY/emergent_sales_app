@@ -16,25 +16,53 @@
     </div>
     <nav class="nav flex-column p-2 small flex-grow-1">
       <?php
-        $items = [
-          ['dashboard','','bi-speedometer2','Dashboard'],
-          ['products','products','bi-box-seam','Products'],
-          ['customers','customers','bi-people','Customers'],
-          ['suppliers','suppliers','bi-truck','Suppliers'],
-          ['sales','sales','bi-receipt','Sales'],
-          ['purchases','purchases','bi-cart-plus','Purchases'],
-          ['reports','reports','bi-bar-chart-line','Reports'],
+        $groups = [
+          ['dashboard', '', 'bi-speedometer2', 'Dashboard'],
+          ['_group', 'Masters', 'bi-collection', [
+            ['products', 'products', 'bi-box-seam', 'Products'],
+            ['customers', 'customers', 'bi-people', 'Customers'],
+            ['suppliers', 'suppliers', 'bi-truck', 'Suppliers'],
+          ]],
+          ['_group', 'Operations', 'bi-arrow-left-right', [
+            ['sales', 'sales', 'bi-receipt', 'Sales'],
+            ['purchases', 'purchases', 'bi-cart-plus', 'Purchases'],
+          ]],
+          ['_group', 'Reports', 'bi-bar-chart-line', [
+            ['reports', 'reports', 'bi-bar-chart-line', 'Sales Reports'],
+          ]],
         ];
         if (($_user['role'] ?? '')==='admin') {
-          $items[] = ['company','company/settings','bi-gear','Company'];
-          $items[] = ['users','users','bi-person-gear','Users'];
+          $groups[] = ['_group', 'Settings', 'bi-gear', [
+            ['company', 'company/settings', 'bi-gear', 'Company'],
+            ['users', 'users', 'bi-person-gear', 'Users'],
+          ]];
         }
-        foreach ($items as $it): [$key,$path,$icon,$label] = $it;
-          $active = $_active === $key ? 'active' : ''; ?>
+
+        foreach ($groups as $item):
+          if ($item[0] === '_group'):
+            [$_, $label, $groupIcon, $children] = $item;
+            $groupId = preg_replace('/[^a-z0-9]/i', '', $label);
+            $hasActive = false;
+            foreach ($children as $ch) { if ($ch[0] === $_active) { $hasActive = true; break; } }
+      ?>
+        <a class="sf-nav-header" data-bs-toggle="collapse" href="#navGroup<?= $groupId ?>" role="button" aria-expanded="<?= $hasActive ? 'true' : 'false' ?>">
+          <span><i class="bi <?= $groupIcon ?> me-2"></i><?= $label ?></span>
+          <i class="bi bi-chevron-down"></i>
+        </a>
+        <div class="collapse sf-nav-group <?= $hasActive ? 'show' : '' ?>" id="navGroup<?= $groupId ?>">
+          <?php foreach ($children as $ch): [$key,$path,$chIcon,$chLabel] = $ch;
+            $active = $_active === $key ? 'active' : ''; ?>
+          <a class="nav-link sf-nav <?= $active ?>" href="<?= View::e($_baseUrl) ?>/<?= $path ?>" data-testid="nav-<?= $key ?>">
+            <i class="bi <?= $chIcon ?> me-2"></i><?= $chLabel ?>
+          </a>
+          <?php endforeach; ?>
+        </div>
+      <?php else: [$key,$path,$icon,$label] = $item;
+        $active = $_active === $key ? 'active' : ''; ?>
         <a class="nav-link sf-nav <?= $active ?>" href="<?= View::e($_baseUrl) ?>/<?= $path ?>" data-testid="nav-<?= $key ?>">
           <i class="bi <?= $icon ?> me-2"></i><?= $label ?>
         </a>
-      <?php endforeach; ?>
+      <?php endif; endforeach; ?>
     </nav>
     <div class="p-3 border-top border-secondary-subtle small">
       <div class="text-uppercase opacity-75" style="font-size:.7rem;letter-spacing:.05em">Signed in</div>
