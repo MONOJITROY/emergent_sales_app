@@ -92,6 +92,7 @@ const SF = (function(){
   const esc = (s) => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
   // ---- Products ----
+  let taxtypeOptions = [];
   function products(){
     const modalEl = document.getElementById('formModal');
     const modal = new bootstrap.Modal(modalEl);
@@ -115,7 +116,6 @@ const SF = (function(){
               <button class="btn btn-sm btn-link p-1 text-danger del" data-id="${r.id}" data-name="${esc(r.name)}"><i class="bi bi-trash"></i></button>
             </td></tr>`;
         }).join(''));
-        // attach
         $('#rows .edit').on('click', function(){
           const r = rows.find(x=>String(x.id)===$(this).data('id').toString()); fillForm(r); modal.show();
         });
@@ -127,18 +127,29 @@ const SF = (function(){
     };
     const fillForm = (r) => {
       const f = document.getElementById('form');
-      ['id','hsn','sku','name','category','unit','cost_price','sale_price','stock','reorder_level'].forEach(k => { if (f[k]) f[k].value = r ? (r[k]??'') : (k==='unit'?'pcs':(['cost_price','sale_price','stock','reorder_level'].includes(k)?0:'')); });
+      const fields = ['id','hsn','sku','name','category','unit','cost_price','sale_price','stock','reorder_level'];
+      fields.forEach(k => { if (f[k]) f[k].value = r ? (r[k]??'') : (k==='unit'?'pcs':(['cost_price','sale_price','stock','reorder_level'].includes(k)?0:'')); });
+      if (f.taxtype_id) f.taxtype_id.value = r ? (r.taxtype_id||'') : '';
     };
     $('#newBtn').on('click', ()=>{ fillForm(null); modal.show(); });
     $('#form').on('submit', function(e){
       e.preventDefault();
       const f = this, data = Object.fromEntries(new FormData(f));
       ['cost_price','sale_price','stock','reorder_level'].forEach(k=> data[k] = Number(data[k]||0));
+      data.taxtype_id = Number(data.taxtype_id||0) || null;
       const id = data.id; delete data.id;
       const p = id ? api.put('/api/products/'+id, data) : api.post('/api/products', data);
       p.then(()=>{ iziToast.success({title: id?'Updated':'Created', position:'bottomRight'}); modal.hide(); load(); });
     });
     $('#searchInput').on('input', debounce(load, 250));
+    // load taxtypes for dropdown
+    api.get('/api/taxtypes').then(rows => {
+      taxtypeOptions = rows;
+      const sel = document.querySelector('[name="taxtype_id"]');
+      if (sel) {
+        rows.forEach(t => { sel.innerHTML += `<option value="${t.id}">${esc(t.taxname)} (${t.percentage}%)</option>`; });
+      }
+    });
     load();
   }
 
@@ -515,5 +526,53 @@ const SF = (function(){
     load();
   }
 
-  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings };
+  // ---- Tax Types ----
+  function taxtypes(){
+    const modalEl = document.getElementById('formModal');
+    const modal = new bootstrap.Modal(modalEl);
+    const load = () => {
+      api.get('/api/taxtypes').then(rows => {
+        if (!rows.length) return $('#rows').html('<tr><td colspan="5" class="text-center text-muted py-3">No tax types yet.</td></tr>');
+        $('#rows').html(rows.map(r => `<tr>
+          <td class="fw-semibold">${esc(r.taxname)}</td>
+          <td class="text-muted">${esc(r.undergroup)}</td>
+          <td class="text-muted">${esc(r.typeofduty)}</td>
+          <td class="text-end text-num">${r.percentage}%</td>
+          <td class="text-end">
+            <button class="btn btn-sm btn-link p-1 text-secondary edit" data-id="${r.id}"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm btn-link p-1 text-danger del" data-id="${r.id}" data-name="${esc(r.taxname)}"><i class="bi bi-trash"></i></button>
+          </td></tr>`).join(''));
+        $('#rows .edit').on('click', function(){
+          const r = rows.find(x=>String(x.id)===$(this).data('id').toString());
+          const f = document.getElementById('form');
+          ['id','taxname','percentage'].forEach(k => { if(f[k]) f[k].value = r[k] ?? ''; });
+          if (f.undergroup) f.undergroup.value = r.undergroup || 'Duties & Taxes';
+          if (f.typeofduty) f.typeofduty.value = r.typeofduty || 'GST';
+          modal.show();
+        });
+        $('#rows .del').on('click', function(){
+          const id=$(this).data('id'), name=$(this).data('name');
+          confirmAction(`Delete "${name}"?`, ()=> api.del('/api/taxtypes/'+id).then(()=>{ iziToast.success({title:'Deleted',position:'bottomRight'}); load(); }));
+        });
+      });
+    };
+    $('#newBtn').on('click', ()=>{
+      const f=document.getElementById('form');
+      ['id','taxname','percentage'].forEach(k=>{ if(f[k]) f[k].value=''; });
+      if (f.undergroup) f.undergroup.value='Duties & Taxes';
+      if (f.typeofduty) f.typeofduty.value='GST';
+      modal.show();
+    });
+    $('#form').on('submit', function(e){
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(this));
+      data.percentage = Number(data.percentage||0);
+      const id = data.id; delete data.id;
+      const p = id ? api.put('/api/taxtypes/'+id, data) : api.post('/api/taxtypes', data);
+      p.then(()=>{ iziToast.success({title:id?'Updated':'Created', position:'bottomRight'}); modal.hide(); load(); });
+    });
+    load();
+  }
+
+  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings, taxtypes };
 })();

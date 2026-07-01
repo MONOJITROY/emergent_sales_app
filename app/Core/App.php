@@ -96,6 +96,7 @@ final class App
         $r->get('/reports',    ['App\\Controllers\\ReportsController',   'index']);
         $r->get('/users',          ['App\\Controllers\\UsersController',     'index']);
         $r->get('/company/settings',['App\\Controllers\\CompanyController',  'index']);
+        $r->get('/taxtypes',        ['App\\Controllers\\TaxtypeController',  'index']);
 
         // API
         $r->get('/api/dashboard/stats', ['App\\Controllers\\DashboardController', 'stats']);
@@ -121,6 +122,11 @@ final class App
         $r->get('/api/users',            ['App\\Controllers\\UsersController', 'apiList']);
         $r->post('/api/users',           ['App\\Controllers\\UsersController', 'apiCreate']);
         $r->delete('/api/users/{id}',    ['App\\Controllers\\UsersController', 'apiDelete']);
+
+        $r->get('/api/taxtypes',        ['App\\Controllers\\TaxtypeController', 'list']);
+        $r->post('/api/taxtypes',       ['App\\Controllers\\TaxtypeController', 'create']);
+        $r->put('/api/taxtypes/{id}',   ['App\\Controllers\\TaxtypeController', 'update']);
+        $r->delete('/api/taxtypes/{id}',['App\\Controllers\\TaxtypeController', 'delete']);
 
         $r->get('/api/company/settings', ['App\\Controllers\\CompanyController', 'get']);
         $r->post('/api/company/settings',['App\\Controllers\\CompanyController', 'save']);

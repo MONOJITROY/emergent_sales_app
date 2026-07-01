@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS purchases;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS customers;
 DROP TABLE IF EXISTS suppliers;
+DROP TABLE IF EXISTS taxtypes;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
@@ -21,18 +22,22 @@ CREATE TABLE users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE products (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    sku VARCHAR(64) NOT NULL UNIQUE,
-    name VARCHAR(190) NOT NULL,
-    category VARCHAR(80) DEFAULT NULL,
-    unit VARCHAR(20) NOT NULL DEFAULT 'pcs',
-    cost_price DECIMAL(12,2) NOT NULL DEFAULT 0,
-    sale_price DECIMAL(12,2) NOT NULL DEFAULT 0,
-    stock DECIMAL(12,2) NOT NULL DEFAULT 0,
-    reorder_level DECIMAL(12,2) NOT NULL DEFAULT 0,
-    description TEXT,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_products_name (name)
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `sku` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `category` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `unit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pcs',
+  `hsn` varchar(25) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `cost_price` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `sale_price` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `taxtype_id` int unsigned NOT NULL,
+  `stock` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `reorder_level` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sku` (`sku`),
+  KEY `idx_products_name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE customers (
@@ -72,6 +77,8 @@ CREATE TABLE sales (
     notes TEXT,
     created_by INT UNSIGNED DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `invoice_no` (`invoice_no`),
     INDEX idx_sales_date (sale_date),
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
@@ -157,6 +164,26 @@ CREATE TABLE companies (
 
 -- Seed an initial company row
 INSERT INTO companies (id, company_name) VALUES (1, '');
+
+-- Tax types
+DROP TABLE IF EXISTS taxtypes;
+
+CREATE TABLE taxtypes (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    undergroup ENUM('Duties & Taxes','Others') NOT NULL DEFAULT 'Duties & Taxes',
+    typeofduty ENUM('GST','Others') NOT NULL DEFAULT 'GST',
+    taxname VARCHAR(120) NOT NULL,
+    percentage DECIMAL(5,2) NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO taxtypes (undergroup, typeofduty, taxname, percentage) VALUES
+('Duties & Taxes','GST','GST 0%',0),
+('Duties & Taxes','GST','GST 3%',3),
+('Duties & Taxes','GST','GST 5%',5),
+('Duties & Taxes','GST','GST 12%',12),
+('Duties & Taxes','GST','GST 18%',18),
+('Duties & Taxes','GST','GST 28%',28);
 
 -- Seed admin (password: admin123)
 -- Hash generated with: password_hash('admin123', PASSWORD_BCRYPT)

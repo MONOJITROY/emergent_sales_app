@@ -36,6 +36,7 @@ final class ProductsController extends Controller {
             'name' => trim((string)$r->input('name','')),
             'category' => trim((string)$r->input('category','')),
             'unit' => trim((string)$r->input('unit','pcs')) ?: 'pcs',
+            'taxtype_id' => (int)$r->input('taxtype_id', 0) ?: null,
             'cost_price' => (float)$r->input('cost_price',0),
             'sale_price' => (float)$r->input('sale_price',0),
             'stock' => (float)$r->input('stock',0),

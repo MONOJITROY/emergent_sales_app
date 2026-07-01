@@ -22,6 +22,7 @@
             ['products', 'products', 'bi-box-seam', 'Products'],
             ['customers', 'customers', 'bi-people', 'Customers'],
             ['suppliers', 'suppliers', 'bi-truck', 'Suppliers'],
+            ['taxtypes', 'taxtypes', 'bi-percent', 'Tax Types'],
           ]],
           ['_group', 'Operations', 'bi-arrow-left-right', [
             ['sales', 'sales', 'bi-receipt', 'Sales'],

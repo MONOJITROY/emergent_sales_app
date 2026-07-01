@@ -20,7 +20,8 @@
     <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">SKU *</label><input class="form-control form-control-sm" name="sku" required></div>
     <div class="col-md-6"><label class="form-label small text-uppercase fw-semibold">Name *</label><input class="form-control form-control-sm" name="name" required></div>
     <div class="col-md-6"><label class="form-label small text-uppercase fw-semibold">Category</label><input class="form-control form-control-sm" name="category"></div>
-    <div class="col-md-6"><label class="form-label small text-uppercase fw-semibold">Unit</label><input class="form-control form-control-sm" name="unit" value="pcs"></div>
+    <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">Unit</label><input class="form-control form-control-sm" name="unit" value="pcs"></div>
+    <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">Tax Type</label><select class="form-select form-select-sm" name="taxtype_id"><option value="">— None —</option></select></div>
     <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">Cost</label><input class="form-control form-control-sm" type="number" step="any" name="cost_price" value="0"></div>
     <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">Price</label><input class="form-control form-control-sm" type="number" step="any" name="sale_price" value="0"></div>
     <div class="col-md-3"><label class="form-label small text-uppercase fw-semibold">Stock</label><input class="form-control form-control-sm" type="number" step="any" name="stock" value="0"></div>
