@@ -22,7 +22,7 @@
     <button class="btn btn-sm btn-outline-secondary" id="addLine"><i class="bi bi-plus-lg me-1"></i>Add item</button>
   </div>
   <div class="table-responsive"><table class="table table-sm sf-table mb-0">
-    <thead><tr><th style="width:40%">Product</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">Total</th><th></th></tr></thead>
+    <thead><tr><th style="width:40%">Product</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">Tax %</th><th class="text-end">Total</th><th></th></tr></thead>
     <tbody id="lines"></tbody>
   </table></div>
 </div>
@@ -35,9 +35,10 @@
   <div class="col-md-6"><div class="card sf-card h-100"><div class="card-body">
     <div class="d-flex justify-content-between small"><span>Subtotal</span><span class="text-num" id="subtotal">0.00</span></div>
     <div class="d-flex justify-content-between align-items-center mt-2"><span>Discount</span><input id="discount" type="number" step="any" class="form-control form-control-sm text-end" style="width:120px" value="<?= (float)$sale['discount'] ?>"></div>
-    <div class="d-flex justify-content-between align-items-center mt-2"><span>Tax</span><input id="tax" type="number" step="any" class="form-control form-control-sm text-end" style="width:120px" value="<?= (float)$sale['tax'] ?>"></div>
+    <div class="d-flex justify-content-between align-items-center mt-2"><span>Tax</span><input id="tax" type="text" class="form-control form-control-sm text-end bg-light" style="width:120px" readonly value="<?= (float)$sale['tax'] ?>"></div>
     <hr class="my-2">
-    <div class="d-flex justify-content-between"><strong>Total</strong><strong class="text-num h5 mb-0" id="total">0.00</strong></div>
+    <div class="d-flex justify-content-between align-items-center mt-2"><span>Round Off</span><span class="text-num" id="roundoff"><?= (float)($sale['roundoff'] ?? 0) ?></span></div>
+    <div class="d-flex justify-content-between"><strong>Grand Total</strong><strong class="text-num h5 mb-0" id="total">0.00</strong></div>
     <div class="d-flex justify-content-between align-items-center mt-2"><span>Paid</span><input id="paid" type="number" step="any" class="form-control form-control-sm text-end" style="width:120px" value="<?= (float)$sale['paid'] ?>"></div>
     <div class="d-flex justify-content-between mt-2"><strong>Balance</strong><strong class="text-orange text-num" id="balance">0.00</strong></div>
     <button id="updateSale" class="btn sf-btn-primary w-100 mt-3" data-id="<?= (int)$sale['id'] ?>">Update Invoice</button>

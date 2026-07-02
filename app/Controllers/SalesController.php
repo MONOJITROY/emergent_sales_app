@@ -35,7 +35,8 @@ final class SalesController extends Controller {
             // Recompute
             $subtotal = 0.0; foreach ($items as $it) { $subtotal += (float)($it['total'] ?? ((float)$it['qty']*(float)$it['price'])); }
             $discount = (float)$r->input('discount',0); $tax = (float)$r->input('tax',0);
-            $total = max(0, $subtotal - $discount + $tax);
+            $roundoff = (float)$r->input('roundoff',0);
+            $total = max(0, $subtotal - $discount + $tax + $roundoff);
             $paid = min((float)$r->input('paid', (float)$sale['paid']), $total);
             $balance = round($total - $paid, 2);
             $status = $balance <= 0 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid');
@@ -45,7 +46,7 @@ final class SalesController extends Controller {
                 'customer_id'   => $custId,
                 'customer_name' => trim((string)$r->input('customer_name', $sale['customer_name'])),
                 'subtotal'      => round($subtotal,2),
-                'discount'      => $discount, 'tax' => $tax,
+                'discount'      => $discount, 'tax' => $tax, 'roundoff' => $roundoff,
                 'total'         => round($total,2),
                 'paid'          => round($paid,2),
                 'balance'       => $balance,
@@ -88,7 +89,8 @@ final class SalesController extends Controller {
             foreach ($items as $it) { $subtotal += (float)($it['total'] ?? ((float)$it['qty']*(float)$it['price'])); }
             $discount = (float)$r->input('discount', 0);
             $tax = (float)$r->input('tax', 0);
-            $total = max(0, $subtotal - $discount + $tax);
+            $roundoff = (float)$r->input('roundoff', 0);
+            $total = max(0, $subtotal - $discount + $tax + $roundoff);
             $paid = min((float)$r->input('paid', 0), $total);
             $balance = round($total - $paid, 2);
             $status = $balance <= 0 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid');
@@ -100,7 +102,7 @@ final class SalesController extends Controller {
                 'invoice_no'=>$invoiceNo, 'customer_id'=>$custId,
                 'customer_name'=>trim((string)$r->input('customer_name','Walk-in customer')),
                 'sale_date'=>date('Y-m-d'),
-                'subtotal'=>round($subtotal,2),'discount'=>$discount,'tax'=>$tax,
+                'subtotal'=>round($subtotal,2),'discount'=>$discount,'tax'=>$tax,'roundoff'=>$roundoff,
                 'total'=>round($total,2),'paid'=>round($paid,2),'balance'=>$balance,
                 'status'=>$status,'notes'=>(string)$r->input('notes',''),
                 'created_by'=>$user['id'] ?? null,
