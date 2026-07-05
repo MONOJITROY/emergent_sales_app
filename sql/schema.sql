@@ -159,6 +159,15 @@ CREATE TABLE companies (
     company_replytoemailname VARCHAR(120) DEFAULT '',
     company_noreplyemailid VARCHAR(190) DEFAULT '',
     company_noreplyemailname VARCHAR(120) DEFAULT '',
+    bank_name VARCHAR(190) DEFAULT '',
+    bank_account_no VARCHAR(60) DEFAULT '',
+    bank_ifsc_code VARCHAR(40) DEFAULT '',
+    bank_branch_name VARCHAR(190) DEFAULT '',
+    bank_account_holder_name VARCHAR(190) DEFAULT '',
+    bank_iban VARCHAR(60) DEFAULT '',
+    bank_swift_code VARCHAR(40) DEFAULT '',
+    bank_upi_id VARCHAR(120) DEFAULT '',
+    bank_qr_code VARCHAR(255) DEFAULT '',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

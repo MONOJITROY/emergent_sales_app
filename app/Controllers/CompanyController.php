@@ -61,6 +61,39 @@ final class CompanyController extends Controller
             $data['company_logo'] = $filename;
         }
 
+        // Handle QR code upload
+        if (!empty($_FILES['bank_qr_code']) && $_FILES['bank_qr_code']['error'] === UPLOAD_ERR_OK) {
+            $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            $info = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($info, $_FILES['bank_qr_code']['tmp_name']);
+            finfo_close($info);
+
+            if (!in_array($mime, $allowed, true)) {
+                $this->json(['ok' => false, 'error' => 'QR code must be JPEG, PNG, GIF, or WebP'], 400);
+                return;
+            }
+
+            $ext = match ($mime) {
+                'image/jpeg' => 'jpg',
+                'image/png'  => 'png',
+                'image/gif'  => 'gif',
+                'image/webp' => 'webp',
+                default      => 'png',
+            };
+            $filename = 'bank_qr_' . date('Ymd_His') . '.' . $ext;
+            $dest = __DIR__ . '/../../public/assets/images/' . $filename;
+            move_uploaded_file($_FILES['bank_qr_code']['tmp_name'], $dest);
+
+            // Remove old QR file
+            $current = Company::settings();
+            if (!empty($current['bank_qr_code'])) {
+                $old = __DIR__ . '/../../public/assets/images/' . $current['bank_qr_code'];
+                if (file_exists($old)) @unlink($old);
+            }
+
+            $data['bank_qr_code'] = $filename;
+        }
+
         Company::update(1, $data);
         $this->json(Company::settings());
     }
@@ -91,6 +124,14 @@ final class CompanyController extends Controller
             'company_replytoemailname'=> trim((string)$r->input('company_replytoemailname', '')),
             'company_noreplyemailid'  => trim((string)$r->input('company_noreplyemailid', '')),
             'company_noreplyemailname'=> trim((string)$r->input('company_noreplyemailname', '')),
+            'bank_name'               => trim((string)$r->input('bank_name', '')),
+            'bank_account_no'         => trim((string)$r->input('bank_account_no', '')),
+            'bank_ifsc_code'          => trim((string)$r->input('bank_ifsc_code', '')),
+            'bank_branch_name'        => trim((string)$r->input('bank_branch_name', '')),
+            'bank_account_holder_name'=> trim((string)$r->input('bank_account_holder_name', '')),
+            'bank_iban'               => trim((string)$r->input('bank_iban', '')),
+            'bank_swift_code'         => trim((string)$r->input('bank_swift_code', '')),
+            'bank_upi_id'             => trim((string)$r->input('bank_upi_id', '')),
         ];
     }
 }

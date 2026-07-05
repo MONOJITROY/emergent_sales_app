@@ -155,6 +155,58 @@
       </div>
     </div>
 
+    <div class="card sf-card mb-3">
+      <div class="card-header bg-light py-2"><span class="small text-uppercase fw-semibold text-secondary">Bank Details</span></div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">Account Holder Name</label>
+            <input class="form-control form-control-sm" name="bank_account_holder_name" value="<?= View::e($s['bank_account_holder_name'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">Bank Name</label>
+            <input class="form-control form-control-sm" name="bank_name" value="<?= View::e($s['bank_name'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">Account No</label>
+            <input class="form-control form-control-sm" name="bank_account_no" value="<?= View::e($s['bank_account_no'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">IFSC Code</label>
+            <input class="form-control form-control-sm" name="bank_ifsc_code" value="<?= View::e($s['bank_ifsc_code'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">Branch Name</label>
+            <input class="form-control form-control-sm" name="bank_branch_name" value="<?= View::e($s['bank_branch_name'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">SWIFT Code</label>
+            <input class="form-control form-control-sm" name="bank_swift_code" value="<?= View::e($s['bank_swift_code'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">IBAN</label>
+            <input class="form-control form-control-sm" name="bank_iban" value="<?= View::e($s['bank_iban'] ?? '') ?>">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small text-uppercase fw-semibold">UPI ID</label>
+            <input class="form-control form-control-sm" name="bank_upi_id" value="<?= View::e($s['bank_upi_id'] ?? '') ?>">
+          </div>
+          <div class="col-12">
+            <label class="form-label small text-uppercase fw-semibold">QR Code</label>
+            <?php if (!empty($s['bank_qr_code'])): ?>
+              <div class="mb-2">
+                <img id="qrPreview" src="<?= View::e($_assetUrl) ?>/assets/images/<?= View::e($s['bank_qr_code']) ?>" class="img-fluid border rounded" style="max-height:120px" alt="QR Code">
+              </div>
+            <?php else: ?>
+              <div id="qrPreview" class="text-muted small mb-2 py-3 border rounded bg-light text-center">No QR code uploaded</div>
+            <?php endif; ?>
+            <input class="form-control form-control-sm" type="file" name="bank_qr_code" accept="image/*" id="qrInput">
+            <div class="form-text small text-muted">JPEG, PNG, GIF, or WebP. Upload payment QR code.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="card sf-card">
       <div class="card-body">
         <button type="submit" class="btn sf-btn-primary w-100 mb-2" id="saveBtn"><i class="bi bi-check-lg me-1"></i>Save Settings</button>

@@ -532,6 +532,12 @@ const SF = (function(){
           if (pv.is('img')) pv.attr('src', baseUrl + '/assets/images/' + s.company_logo);
           else pv.replaceWith(`<img id="logoPreview" src="${baseUrl}/assets/images/${s.company_logo}" class="img-fluid mb-3" style="max-height:120px" alt="Logo">`);
         }
+        // qr preview
+        if (s.bank_qr_code) {
+          const qv = $('#qrPreview');
+          if (qv.is('img')) qv.attr('src', baseUrl + '/assets/images/' + s.bank_qr_code);
+          else qv.replaceWith(`<img id="qrPreview" src="${baseUrl}/assets/images/${s.bank_qr_code}" class="img-fluid border rounded" style="max-height:120px" alt="QR Code">`);
+        }
       });
     };
 
@@ -543,6 +549,19 @@ const SF = (function(){
           const pv = $('#logoPreview');
           if (pv.is('img')) pv.attr('src', e.target.result);
           else pv.replaceWith(`<img id="logoPreview" src="${e.target.result}" class="img-fluid mb-3" style="max-height:120px" alt="Logo">`);
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+
+    // Preview QR on file select
+    $('#qrInput').on('change', function(){
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const qv = $('#qrPreview');
+          if (qv.is('img')) qv.attr('src', e.target.result);
+          else qv.replaceWith(`<img id="qrPreview" src="${e.target.result}" class="img-fluid border rounded" style="max-height:120px" alt="QR Code">`);
         };
         reader.readAsDataURL(this.files[0]);
       }
