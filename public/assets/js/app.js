@@ -4,6 +4,7 @@ const SF = (function(){
   const baseUrl = $('meta[name="base-url"]').attr('content') || '';
   const csrf    = () => $('meta[name="csrf-token"]').attr('content') || '';
   const money   = (v) => Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const ucwords = (s) => String(s).replace(/\b\w/g, c => c.toUpperCase());
 
   // global ajax setup
   $.ajaxSetup({
@@ -645,5 +646,66 @@ const SF = (function(){
     load();
   }
 
-  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings, taxtypes };
+  // ---- Invoice Templates ----
+  function invoiceTemplates(){
+    const load = () => {
+      api.get('/api/invoice-templates').then(templates => {
+        const sel = $('#templateSelect');
+        sel.find('option:not(:first)').remove();
+        if (!templates.length) {
+          sel.prop('disabled', true);
+          $('#setDefaultBtn').prop('disabled', true);
+          $('#previewArea').text('No templates found in invoice-templates/').show();
+          $('#previewFrame').hide();
+          return;
+        }
+        templates.forEach(t => sel.append(`<option value="${esc(t.id)}">${esc(t.name)}</option>`));
+      });
+      api.get('/api/company/settings').then(s => {
+        if (s && s.invoice_template) {
+          $('#currentDefault').text('Current default: ' + ucwords(s.invoice_template.replace(/[-_]/g, ' ')));
+          $('#templateSelect').val(s.invoice_template);
+          loadPreview(s.invoice_template);
+        }
+      });
+    };
+
+    const loadPreview = (id) => {
+      if (!id) return;
+      $('#previewArea').hide();
+      const frame = $('#previewFrame');
+      frame.attr('src', baseUrl + '/invoice-templates/' + id + '/preview');
+      frame.show();
+    };
+
+    $('#templateSelect').on('change', function(){
+      const val = $(this).val();
+      $('#setDefaultBtn').prop('disabled', !val);
+      if (val) loadPreview(val);
+      else {
+        $('#previewFrame').hide();
+        $('#previewArea').text('Select a template to preview').show();
+      }
+    });
+
+    $('#setDefaultBtn').on('click', function(){
+      const template = $('#templateSelect').val();
+      if (!template) return;
+      const btn = $(this);
+      btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Saving…');
+      api.post('/api/invoice-templates/default', { template, _csrf: csrf() })
+        .then(() => {
+          iziToast.success({title:'Default Set', message:'Invoice template updated', position:'bottomRight'});
+          $('#currentDefault').text('Current default: ' + ucwords(template.replace(/[-_]/g, ' ')));
+          btn.html('<i class="bi bi-check-lg me-1"></i>Set as Default').prop('disabled', false);
+        })
+        .catch(() => {
+          btn.html('<i class="bi bi-check-lg me-1"></i>Set as Default').prop('disabled', false);
+        });
+    });
+
+    load();
+  }
+
+  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings, taxtypes, invoiceTemplates };
 })();

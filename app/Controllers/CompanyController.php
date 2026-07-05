@@ -132,6 +132,7 @@ final class CompanyController extends Controller
             'bank_iban'               => trim((string)$r->input('bank_iban', '')),
             'bank_swift_code'         => trim((string)$r->input('bank_swift_code', '')),
             'bank_upi_id'             => trim((string)$r->input('bank_upi_id', '')),
+            'invoice_template'        => trim((string)$r->input('invoice_template', '')),
         ];
     }
 }

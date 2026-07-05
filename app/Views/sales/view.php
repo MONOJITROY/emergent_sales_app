@@ -28,7 +28,7 @@
     <div class="col-md-6">
       <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Bill to</div>
       <div class="fw-semibold"><?= View::e($sale['customer_name']) ?></div>
-      <div class="small text-muted">Address: <?= {{customeraddress}} ?></div>
+      <div class="small text-muted">Address: <?= View::e($sale['customer_address']) ?></div>
     </div>
     <div class="col-md-6 text-md-end">
       <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Status</div>

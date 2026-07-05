@@ -1,5 +1,8 @@
 RewriteEngine On
 
+# Route /invoice-templates through PHP (prevent directory listing)
+RewriteRule ^invoice-templates/?$ index.php/$0 [QSA,L]
+
 # Allow direct access to existing files (assets)
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

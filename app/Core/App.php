@@ -95,8 +95,11 @@ final class App
         $r->get('/purchases',  ['App\\Controllers\\PurchasesController', 'index']);
         $r->get('/reports',    ['App\\Controllers\\ReportsController',   'index']);
         $r->get('/users',          ['App\\Controllers\\UsersController',     'index']);
-        $r->get('/company/settings',['App\\Controllers\\CompanyController',  'index']);
-        $r->get('/taxtypes',        ['App\\Controllers\\TaxtypeController',  'index']);
+        $r->get('/company/settings',    ['App\\Controllers\\CompanyController',        'index']);
+        $r->get('/invoice-templates',              ['App\\Controllers\\InvoiceTemplatesController','index']);
+        $r->get('/invoice-templates/',             ['App\\Controllers\\InvoiceTemplatesController','index']);
+        $r->get('/invoice-templates/{template}/preview',  ['App\\Controllers\\InvoiceTemplatesController','preview']);
+        $r->get('/taxtypes',            ['App\\Controllers\\TaxtypeController',        'index']);
 
         // API
         $r->get('/api/dashboard/stats', ['App\\Controllers\\DashboardController', 'stats']);
@@ -128,8 +131,10 @@ final class App
         $r->put('/api/taxtypes/{id}',   ['App\\Controllers\\TaxtypeController', 'update']);
         $r->delete('/api/taxtypes/{id}',['App\\Controllers\\TaxtypeController', 'delete']);
 
-        $r->get('/api/company/settings', ['App\\Controllers\\CompanyController', 'get']);
-        $r->post('/api/company/settings',['App\\Controllers\\CompanyController', 'save']);
+        $r->get('/api/company/settings',     ['App\\Controllers\\CompanyController',           'get']);
+        $r->post('/api/company/settings',    ['App\\Controllers\\CompanyController',           'save']);
+        $r->get('/api/invoice-templates',    ['App\\Controllers\\InvoiceTemplatesController',  'list']);
+        $r->post('/api/invoice-templates/default', ['App\\Controllers\\InvoiceTemplatesController', 'setDefault']);
 
         $r->get('/api/reports/sales-by-customer', ['App\\Controllers\\ReportsController', 'salesByCustomer']);
         $r->get('/api/reports/sales-by-product',  ['App\\Controllers\\ReportsController', 'salesByProduct']);

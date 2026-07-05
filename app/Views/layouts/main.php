@@ -35,6 +35,7 @@
         if (($_user['role'] ?? '')==='admin') {
           $groups[] = ['_group', 'Settings', 'bi-gear', [
             ['company', 'company/settings', 'bi-gear', 'Company'],
+            ['invoicetemplates', 'invoice-templates', 'bi-file-earmark-text', 'Invoice Templates'],
             ['users', 'users', 'bi-person-gear', 'Users'],
           ]];
         }
