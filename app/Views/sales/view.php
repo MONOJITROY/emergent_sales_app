@@ -21,14 +21,16 @@
     <div class="text-end">
       <div class="text-uppercase small text-secondary fw-semibold" style="font-size:.7rem;letter-spacing:.06em">Invoice</div>
       <div class="text-num h5 mb-0"># <?= View::e($sale['invoice_no']) ?></div>
-      <div class="small text-muted">Date: <?= View::e($sale['sale_date']) ?></div>
+      <div class="small text-muted">Date: <?= date('d-m-Y', strtotime(View::e($sale['sale_date']))) ?></div>
     </div>
   </div>
   <div class="row g-3 mb-3">
     <div class="col-md-6">
       <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Bill to</div>
       <div class="fw-semibold"><?= View::e($sale['customer_name']) ?></div>
-      <div class="small text-muted">Address: <?= View::e($sale['customer_address']) ?></div>
+      <div class="small text-muted">Address: <?= View::e($sale['customer']['address'] ?? '') ?></div>
+      <div class="small text-muted">Phone: <?= View::e($sale['customer']['phone'] ?? '') ?></div>
+      <div class="small text-muted">Email: <?= View::e($sale['customer']['email'] ?? '') ?></div>
     </div>
     <div class="col-md-6 text-md-end">
       <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Status</div>
