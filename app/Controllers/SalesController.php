@@ -1,7 +1,7 @@
 <?php
 namespace App\Controllers;
 use App\Core\Controller; use App\Core\Auth; use App\Core\Request; use App\Core\Database;
-use App\Models\Sale; use App\Models\Product;
+use App\Models\Sale; use App\Models\Product; use App\Models\Company;
 
 final class SalesController extends Controller {
     public function index(Request $r): void { Auth::user(); $this->view('sales/index', ['_active'=>'sales']); }
@@ -73,7 +73,8 @@ final class SalesController extends Controller {
         Auth::user();
         $sale = Sale::withItems((int)$r->param('id'));
         if (!$sale) { http_response_code(404); echo '<h1>Not found</h1>'; return; }
-        $this->view('sales/view', ['_active'=>'sales','sale'=>$sale]);
+        $company = Company::settings();
+        $this->view('sales/view', ['_active'=>'sales','sale'=>$sale,'company'=>$company]);
     }
     public function apiList(Request $r): void { Auth::user(); $this->json(Sale::listAll(trim((string)($_GET['q'] ?? '')))); }
     public function apiGet(Request $r): void { Auth::user(); $s = Sale::withItems((int)$r->param('id'));

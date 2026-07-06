@@ -1,6 +1,7 @@
 <?php
 namespace App\Controllers;
 
+use App\Core\App;
 use App\Core\Controller;
 use App\Core\Auth;
 use App\Core\Request;
@@ -8,6 +9,7 @@ use App\Core\Mailer;
 use App\Core\Database;
 use App\Models\Sale;
 use App\Models\Customer;
+use App\Models\Company;
 
 final class ExportController extends Controller
 {
@@ -100,6 +102,19 @@ final class ExportController extends Controller
 
     private function invoiceHtml(array $sale): string
     {
+        $company = Company::settings() ?: [];
+        $logoHtml = '';
+        $nameHtml = htmlspecialchars($company['company_name'] ?: 'StockFlow');
+        if (!empty($company['company_logo'])) {
+            $logoPath = __DIR__ . '/../../public/assets/images/' . $company['company_logo'];
+            if (file_exists($logoPath)) {
+                $logoData = base64_encode(file_get_contents($logoPath));
+                $logoExt = strtolower(pathinfo($company['company_logo'], PATHINFO_EXTENSION));
+                $logoMime = $logoExt === 'png' ? 'image/png' : ($logoExt === 'gif' ? 'image/gif' : ($logoExt === 'webp' ? 'image/webp' : 'image/jpeg'));
+                $logoHtml = '<img src="data:' . $logoMime . ';base64,' . $logoData . '" alt="Logo" style="max-height:40px;margin-bottom:4px"><br>';
+            }
+        }
+
         $rows = '';
         foreach ($sale['items'] as $it) {
             $rows .= '<tr><td>' . htmlspecialchars((string)$it['sku']) . '</td><td>' . htmlspecialchars((string)$it['name']) . '</td>'
@@ -114,7 +129,7 @@ final class ExportController extends Controller
              . 'th{background:#f8fafc;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:#475569}'
              . '.right{text-align:right}.muted{color:#64748b}.totals td{border:none;padding:2px 8px}';
         $h = '<html><head><meta charset="utf-8"><style>' . $css . '</style></head><body>'
-            . '<table style="border:none;margin:0"><tr><td style="border:none"><h1>StockFlow</h1><div class="muted">Sales &amp; Inventory</div></td>'
+            . '<table style="border:none;margin-left:-7px;"><tr><td style="border:none">' . $logoHtml . '<h1 style="display:inline">' . $nameHtml . '</h1></td>'
             . '<td style="border:none;text-align:right"><h3>INVOICE</h3><div><b>' . htmlspecialchars((string)$sale['invoice_no']) . '</b></div>'
             . '<div class="muted">Date: ' . htmlspecialchars((string)$sale['sale_date']) . '</div>'
             . '<div class="muted">Status: ' . strtoupper((string)$sale['status']) . '</div></td></tr></table>'

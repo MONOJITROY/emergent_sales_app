@@ -47,6 +47,8 @@ h1,h2,h3,h4,h5,.h1,.h2,.h3,.h4,.h5{font-family:'Chivo',system-ui,sans-serif;lett
 /* .sf-auth-bg{background:linear-gradient(rgba(15,23,42,.45),rgba(15,23,42,.45)),url('../images/login-banner.png') center/cover no-repeat;} */
 /* .sf-logo{display:inline-grid;place-items:center;width:24px;height:24px;background:url('../images/logo-banner-h200.png');color:#fff;border-radius:3px;font-weight:700;font-size:.65rem;letter-spacing:-.02em;} */
 .sf-logo{display:inline-grid;place-items:center;width:204px;height:60px;background:url('../images/logo-banner-h200.png');color:#fff;border-radius:7px;font-weight:700;font-size:.65rem;letter-spacing:-.02em;}
+/* .sf-invlogo{display:inline-grid;place-items:center;width:204px;height:60px;background:url('../images/company_logo_20260705_142607.png');color:#fff;border-radius:7px;font-weight:700;font-size:.65rem;letter-spacing:-.02em;} */
+.sf-invlogo img{width:90px; height:60px; /* object-fit:contain; border-radius:7px; */}
 
 .sf-sidebar{width:232px;background:var(--sf-sidebar);}
 .sf-sidebar .sf-nav{color:#cbd5e1;border-left:2px solid transparent;border-radius:.25rem;padding:.45rem .7rem;margin-bottom:1px;display:flex;align-items:center;}

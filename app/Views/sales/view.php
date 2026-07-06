@@ -11,10 +11,10 @@
 </div>
 
 <div class="card sf-card print-area"><div class="card-body">
-  <div class="d-flex justify-content-between flex-wrap gap-3 pb-3 border-bottom mb-3">
+  <div class="d-flex justify-content-between flex-wrap gap-3 pb-1 border-bottom mb-3">
     <div>
       <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="sf-logo"></span><!-- <strong>StockFlow</strong> -->
+        <span class="sf-invlogo"><?php if (!empty($company['company_logo'])): ?><img src="<?= View::e($_baseUrl) ?>/assets/images/<?= View::e($company['company_logo']) ?>" alt="Company Logo"><?php endif; ?></span><!-- <strong>StockFlow</strong> -->
       </div>
         <!-- <div class="text-muted small">Sales & Inventory · Demo</div> -->
     </div>
