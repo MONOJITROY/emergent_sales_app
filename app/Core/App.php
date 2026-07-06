@@ -144,6 +144,7 @@ final class App
         $r->get('/api/exports/sales.xlsx',           ['App\\Controllers\\ExportController', 'salesXlsx']);
         $r->get('/api/exports/invoice/{id}.pdf',     ['App\\Controllers\\ExportController', 'invoicePdf']);
         $r->post('/api/sales/{id}/email',            ['App\\Controllers\\ExportController', 'emailInvoice']);
+        $r->get('/api/invoice/{id}/render',          ['App\\Controllers\\ExportController', 'renderInvoice']);
 
         // Edit sale
         $r->put('/api/sales/{id}',                   ['App\\Controllers\\SalesController', 'apiUpdate']);

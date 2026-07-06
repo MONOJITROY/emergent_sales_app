@@ -73,7 +73,7 @@ final class SalesController extends Controller {
         Auth::user();
         $sale = Sale::withItems((int)$r->param('id'));
         if (!$sale) { http_response_code(404); echo '<h1>Not found</h1>'; return; }
-        $company = Company::settings();
+        $company = Company::settings() ?: [];
         $this->view('sales/view', ['_active'=>'sales','sale'=>$sale,'company'=>$company]);
     }
     public function apiList(Request $r): void { Auth::user(); $this->json(Sale::listAll(trim((string)($_GET['q'] ?? '')))); }

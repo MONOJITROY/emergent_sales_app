@@ -10,13 +10,35 @@
   </div>
 </div>
 
+<?php if (!empty($company['invoice_template'])): ?>
+<div class="card sf-card no-print"><div class="card-body text-center py-5">
+  <i class="bi bi-file-earmark-text" style="font-size:3rem;color:#adb5bd"></i>
+  <p class="text-muted mt-2 mb-3">This invoice uses a custom template.</p>
+  <button class="btn sf-btn-primary" data-bs-toggle="modal" data-bs-target="#invoiceTemplateModal">
+    <i class="bi bi-eye me-1"></i>View Invoice
+  </button>
+</div></div>
+
+<div class="modal fade" id="invoiceTemplateModal" tabindex="-1" style="--bs-modal-width:900px">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h5 class="modal-title">Invoice #<?= View::e($sale['invoice_no']) ?></h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe src="<?= View::e($_baseUrl) ?>/api/invoice/<?= (int)$sale['id'] ?>/render" style="width:100%;height:700px;border:0;border-radius:0 0 var(--sf-radius,6px) var(--sf-radius,6px)"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+<?php else: ?>
 <div class="card sf-card print-area"><div class="card-body">
   <div class="d-flex justify-content-between flex-wrap gap-3 pb-1 border-bottom mb-3">
     <div>
       <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="sf-invlogo"><?php if (!empty($company['company_logo'])): ?><img src="<?= View::e($_baseUrl) ?>/assets/images/<?= View::e($company['company_logo']) ?>" alt="Company Logo"><?php endif; ?></span><!-- <strong>StockFlow</strong> -->
+        <span class="sf-invlogo"><?php if (!empty($company['company_logo'])): ?><img src="<?= View::e($_baseUrl) ?>/assets/images/<?= View::e($company['company_logo']) ?>" alt="Company Logo"><?php endif; ?></span>
       </div>
-        <!-- <div class="text-muted small">Sales & Inventory · Demo</div> -->
     </div>
     <div class="text-end">
       <div class="text-uppercase small text-secondary fw-semibold" style="font-size:.7rem;letter-spacing:.06em">Invoice</div>
@@ -56,6 +78,7 @@
   </div></div>
   <?php if (!empty($sale['notes'])): ?><div class="border-top pt-3 mt-3 small"><strong class="text-uppercase text-secondary" style="font-size:.7rem;letter-spacing:.06em">Notes</strong><div class="text-muted mt-1" style="white-space:pre-wrap"><?= View::e($sale['notes']) ?></div></div><?php endif; ?>
 </div></div>
+<?php endif; ?>
 
 <?php if ((float)$sale['balance'] > 0): ?>
 <div class="card sf-card mt-3 no-print"><div class="card-body">
