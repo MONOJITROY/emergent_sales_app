@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!-- saved from url=(0054)https://harnishdesign.net/demo/html/koice/index-3.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://harnishdesign.net/demo/html/koice/images/favicon.png" rel="icon">
+<title>General Invoice -4 - Koice</title>
+<meta name="author" content="harnishdesign.net">
+
+<!-- Web Fonts
+======================= -->
+<link rel="stylesheet" href="./webfonts.css" type="text/css">
+
+<!-- Stylesheet
+======================= -->
+<link rel="stylesheet" type="text/css" href="./bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="./all.min.css">
+<link rel="stylesheet" type="text/css" href="./stylesheet.css">
+</head>
+<body>
+<!-- Container -->
+<div class="container-fluid invoice-container">
+  <!-- Main Content -->
+  <main>
+	  <div class="table-responsive">
+		<table class="table table-bordered border border-secondary mb-0">
+			<tbody>
+				<tr>
+				  <td colspan="2" class="bg-light text-center"><h3 class="mb-0">{companyname}</h3></td>
+				</tr>
+				<tr>
+				  <td colspan="2" class="text-center text-uppercase">{companyaddress}</td>
+				</tr>
+				<tr>
+				  <td colspan="2" class="py-1">
+					<div class="row">
+						<div class="col">Debit Memo</div>
+						<div class="col text-center fw-600 text-3 text-uppercase">Tax Invoice</div>
+						<div class="col text-end">Original</div>
+					</div>
+				  </td>
+				</tr>
+				<tr>
+				  <td class="col-7">
+					<div class="row gx-2 gy-2">
+						<div class="col-auto"><strong>M/s. :</strong></div>
+						<div class="col">
+							<address>
+								<strong>{{customername}}</strong><br>
+                {{customeraddress}} <br>
+                {{customercity}}, {{customercountry}} <br>
+                {{customeremail}}
+							</address>
+						</div>
+					</div>
+				  </td>
+				  <td class="col-5 bg-light">
+					<div class="row gx-2 gy-1 fw-600">
+						<div class="col-5">Invoice No <span class="float-end">:</span></div>
+						<div class="col-7">{invoiceno}</div>
+												
+						<div class="col-5">Date <span class="float-end">:</span></div>
+						<div class="col-7">{invoicedateinddmmyyyy}</div>
+					</div>
+				  </td>
+				</tr>
+				<tr>
+					<td colspan="2" class="p-0">
+						<table class="table table-sm mb-0">
+							<thead>
+							  <tr class="bg-light">
+								<td class="col-6 "><strong>Description</strong></td>
+								<td class="col-6 "><strong>HSN/SAC</strong></td>
+								<td class="col-1 text-center"><strong>Qty</strong></td>
+								<td class="col-2 text-end"><strong>Rate</strong></td>
+								<td class="col-2 text-end"><strong>Per</strong></td>
+								<td class="col-2 text-end"><strong>Amount</strong></td>
+							  </tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="col-6">
+										<span style="font-size:0.7rem;color:rgba(128, 128, 128, 0.322)">{slno}</span>. <spam class="fw-600">{itemname}</spam>
+									</td>
+									<td class="col-2">{hsn/sac}</td>
+									<td class="col-1 text-center">{Quantity}</td>
+									<td class="col-2 text-end">{Price}</td>
+									<td class="col-2 text-end">{per}</td>
+									<td class="col-2 text-end">{lineamount}</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+				<tr class="bg-light fw-600">
+					<td class="col-7 py-1">GSTIN No.: {compnygstno}</td>
+					<td class="col-5 py-1 pe-1">Sub Total: <span class="float-end">{totalinvoiceamountbeforetax}</span></td>
+				</tr>
+				<tr>
+					<td class="col-7 text-1"><span class="fw-600">Bill Amount:</span> <i>{amountinwords}</i></td>
+					<td class="col-5 pe-1">
+						Tax: <span class="float-end">{taxamount}</span>
+					</td>
+				</tr>
+				<tr>
+					<td class="col-7 text-1">Note :</td>
+					<td class="col-5 pe-1 bg-light fw-600">
+						Grand Total:<span class="float-end">{totalinvoiceamountaftertax}</span>
+					</td>
+				</tr>
+				<tr>
+					<td class="col-7 text-1">
+						<div class="fw-600">Terms &amp; Condition :</div>
+						<ol>
+							<li>Goods once sold will not be taken back.</li>
+							<li>Our risk and responsibility ceases as soon</li>
+						</ol>
+					</td>
+					<td class="col-5 pe-1 text-end">
+						For, {companyname}
+						<div class="text-1 fst-italic mt-5">(Authorised Signatory)</div>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+  </main>
+  <footer class="text-center mt-4">
+	<div class="btn-group btn-group-sm d-print-none"> <a href="javascript:window.print()" class="btn btn-light border text-black-50 shadow-none"><i class="fa fa-print"></i> Print &amp; Download</a> </div>
+  </footer>
+</div>
+
+</body></html>
