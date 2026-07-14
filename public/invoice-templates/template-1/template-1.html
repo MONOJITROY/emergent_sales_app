@@ -906,12 +906,17 @@
     .tm_coffee_shop_img img {
       max-height: 100%;
     }
-
+    .tm_invoice.tm_style1 .tm_invoice_left {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+      width: 50%;
+    }
     .tm_invoice.tm_style1 .tm_invoice_right {
       -webkit-box-flex: 0;
           -ms-flex: none;
               flex: none;
-      width: 60%;
+      width: 50%;
     }
     .tm_invoice.tm_style1 .tm_invoice_table {
       grid-gap: 1px;
@@ -2428,6 +2433,7 @@
       .itemarea {
         min-height: 57.2vh;
       }
+      .mt-n2{margin-top: -2rem !important;}
   </style>
 </head>
 
@@ -2447,7 +2453,7 @@
         </div>      
         <div class="tm_invoice_in">
           <div class="tm_invoice_head tm_align_center tm_mt19 tm_mb12">
-            <div class="tm_invoice_left">
+            <div class="tm_invoice_left mt-n2">
               <div class="tm_logo"><img src="{businesslogo}" alt="Logo"></div>
               <div class="tm_text"><span><strong>{companyname}</strong></span> <br> {companyaddress}</div>
               <div class="tm_text"><span><strong>GSTIN No.: {compnygstno}</strong></span></div>

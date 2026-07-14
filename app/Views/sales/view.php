@@ -34,16 +34,24 @@
 </div>
 <?php else: ?>
 <div class="card sf-card print-area"><div class="card-body">
-  <div class="d-flex justify-content-between flex-wrap gap-3 pb-1 border-bottom mb-3">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pb-1 border-bottom mb-3">
     <div>
-      <div class="d-flex align-items-center gap-2 mb-1">
-        <span class="sf-invlogo"><?php if (!empty($company['company_logo'])): ?><img src="<?= View::e($_baseUrl) ?>/assets/images/<?= View::e($company['company_logo']) ?>" alt="Company Logo"><?php endif; ?></span>
+      <div class="d-flex flex-direction-column align-items-flexstart">
+        <span class="sf-invlogo">
+          <?php if (!empty($company['company_logo'])): ?>
+            <img src="<?= View::e($_baseUrl) ?>/assets/images/<?= View::e($company['company_logo']) ?>" alt="Company Logo">
+          <?php endif; ?>
+        </span>
+        <p class="company-name"><?= View::e($company['company_name']) ?></p>
       </div>
     </div>
     <div class="text-end">
       <div class="text-uppercase small text-secondary fw-semibold" style="font-size:.7rem;letter-spacing:.06em">Invoice</div>
       <div class="text-num h5 mb-0"># <?= View::e($sale['invoice_no']) ?></div>
       <div class="small text-muted">Date: <?= date('d-m-Y', strtotime(View::e($sale['sale_date']))) ?></div>
+
+      <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Status</div>
+      <span class="badge sf-badge sf-status-<?= View::e($sale['status']) ?>"><?= strtoupper($sale['status']) ?></span>
     </div>
   </div>
   <div class="row g-3 mb-3">
@@ -55,8 +63,16 @@
       <div class="small text-muted">Email: <?= View::e($sale['customer']['email'] ?? '') ?></div>
     </div>
     <div class="col-md-6 text-md-end">
-      <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Status</div>
-      <span class="badge sf-badge sf-status-<?= View::e($sale['status']) ?>"><?= strtoupper($sale['status']) ?></span>
+      <!-- <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Status</div>
+      <span class="badge sf-badge sf-status-<?= View::e($sale['status']) ?>"><?= strtoupper($sale['status']) ?></span> -->
+      
+      <div class="col-md-12">
+        <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Ship to</div>
+        <div class="fw-semibold"><?= View::e($sale['customer_name']) ?></div>
+        <div class="small text-muted">Address: <?= View::e($sale['customer']['address'] ?? '') ?></div>
+        <div class="small text-muted">Phone: <?= View::e($sale['customer']['phone'] ?? '') ?></div>
+        <div class="small text-muted">Email: <?= View::e($sale['customer']['email'] ?? '') ?></div>
+      </div>
     </div>
   </div>
   <div class="table-responsive"><table class="table table-sm sf-table">
@@ -68,15 +84,34 @@
         <td class="text-end text-num"><?= number_format((float)$it['total'],2) ?></td></tr>
     <?php endforeach; ?></tbody>
   </table></div>
-  <div class="d-flex justify-content-end"><div style="min-width:260px">
-    <div class="d-flex justify-content-between small"><span class="text-muted">Subtotal</span><span class="text-num"><?= number_format((float)$sale['subtotal'],2) ?></span></div>
-    <div class="d-flex justify-content-between small"><span class="text-muted">Discount</span><span class="text-num">-<?= number_format((float)$sale['discount'],2) ?></span></div>
-    <div class="d-flex justify-content-between small"><span class="text-muted">Tax</span><span class="text-num">+<?= number_format((float)$sale['tax'],2) ?></span></div>
-    <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1"><span>Total</span><span class="text-num"><?= number_format((float)$sale['total'],2) ?></span></div>
-    <div class="d-flex justify-content-between small text-muted"><span>Paid</span><span class="text-num"><?= number_format((float)$sale['paid'],2) ?></span></div>
-    <div class="d-flex justify-content-between fw-bold text-orange"><span>Balance</span><span class="text-num"><?= number_format((float)$sale['balance'],2) ?></span></div>
-  </div></div>
-  <?php if (!empty($sale['notes'])): ?><div class="border-top pt-3 mt-3 small"><strong class="text-uppercase text-secondary" style="font-size:.7rem;letter-spacing:.06em">Notes</strong><div class="text-muted mt-1" style="white-space:pre-wrap"><?= View::e($sale['notes']) ?></div></div><?php endif; ?>
+  <div class="d-flex justify-content-end">
+    <div style="min-width:260px">
+      <div class="d-flex justify-content-between small">
+        <span class="text-muted">Subtotal</span><span class="text-num"><?= number_format((float)$sale['subtotal'],2) ?></span>
+      </div>
+      <div class="d-flex justify-content-between small">
+        <span class="text-muted">Discount</span><span class="text-num">-<?= number_format((float)$sale['discount'],2) ?></span>
+      </div>
+      <div class="d-flex justify-content-between small">
+        <span class="text-muted">Tax</span><span class="text-num">+<?= number_format((float)$sale['tax'],2) ?></span>
+      </div>
+      <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1">
+        <span>Total</span><span class="text-num"><?= number_format((float)$sale['total'],2) ?></span>
+      </div>
+      <div class="d-flex justify-content-between small text-muted">
+        <span>Paid</span><span class="text-num"><?= number_format((float)$sale['paid'],2) ?></span>
+      </div>
+      <div class="d-flex justify-content-between fw-bold text-orange">
+        <span>Balance</span><span class="text-num"><?= number_format((float)$sale['balance'],2) ?></span>
+      </div>
+    </div>
+  </div>
+  <?php if (!empty($sale['notes'])): ?>
+    <div class="border-top pt-3 mt-3 small">
+      <strong class="text-uppercase text-secondary" style="font-size:.7rem;letter-spacing:.06em">Notes</strong>
+      <div class="text-muted mt-1" style="white-space:pre-wrap"><?= View::e($sale['notes']) ?></div>
+    </div>
+  <?php endif; ?>
 </div></div>
 <?php endif; ?>
 

@@ -226,28 +226,34 @@ const SF = (function(){
       const c = customers.find(x=>String(x.id)===this.value);
       $('#customerName').val(c?c.name:'Walk-in customer');
     });
-    $('#addLine').on('click', ()=>{ lines.push({product_id:'',sku:'',name:'',qty:1,price:0,total:0,tax_pct:0}); render(); });
+    $('#addLine').on('click', ()=>{ lines.push({product_id:'',sku:'',name:'',hsn:'',qty:1,price:0,total:0,tax_pct:0,typeofduty:'GST'}); render(); });
 
     function render(){
       $('#lines').html(lines.length===0
-        ? '<tr><td colspan="6" class="text-center text-muted py-3 small">No items yet.</td></tr>'
-        : lines.map((it,i)=>`<tr>
+        ? '<tr><td colspan="8" class="text-center text-muted py-3 small">No items yet.</td></tr>'
+        : lines.map((it,i)=>{
+            const taxAmt = Number(it.total)*Number(it.tax_pct)/100;
+            const afterTax = Number(it.total)+taxAmt;
+            return `<tr>
             <td><select class="form-select form-select-sm ln-prod" data-i="${i}"><option value="">— select product —</option>${products.map(p=>`<option value="${p.id}" ${String(p.id)===String(it.product_id)?'selected':''}>${esc(p.sku)} — ${esc(p.name)} (stock ${p.stock})</option>`).join('')}</select></td>
             <td class="text-end"><input class="form-control form-control-sm text-end numberinput ln-qty" data-i="${i}" type="text" step="any" style="width:80px" value="${it.qty}"></td>
             <td class="text-end"><input class="form-control form-control-sm text-end numberinput ln-price" data-i="${i}" type="text" step="any" style="width:100px" value="${it.price}"></td>
             <td class="text-end text-num small text-muted">${it.tax_pct ? it.tax_pct + '%' : '—'}</td>
             <td class="text-end text-num">${money(it.total)}</td>
+            <td class="text-end text-num small">${money(taxAmt)}</td>
+            <td class="text-end text-num fw-semibold">${money(afterTax)}</td>
             <td class="text-end"><button class="btn btn-sm btn-link text-danger p-0 ln-del" data-i="${i}"><i class="bi bi-trash"></i></button></td>
-          </tr>`).join(''));
+          </tr>`;}).join(''));
       $('.ln-prod').on('change', function(){
         const i=+$(this).data('i'),pid=this.value;
         const p=products.find(x=>String(x.id)===pid);
         if(p){
-          lines[i].product_id=p.id; lines[i].sku=p.sku; lines[i].name=p.name; lines[i].price=Number(p.sale_price);
+          lines[i].product_id=p.id; lines[i].sku=p.sku; lines[i].name=p.name; lines[i].hsn=p.hsn||''; lines[i].price=Number(p.sale_price);
           const tt=taxtypes.find(x=>String(x.id)===String(p.taxtype_id));
           lines[i].tax_pct=tt?Number(tt.percentage):0;
+          lines[i].typeofduty=tt?tt.typeofduty:'GST';
         } else {
-          lines[i].tax_pct=0;
+          lines[i].tax_pct=0; lines[i].typeofduty='GST';
         }
         lines[i].total=Number(lines[i].qty)*Number(lines[i].price);
         render();
@@ -269,6 +275,48 @@ const SF = (function(){
       $('#roundoff').text(roff.toFixed(2));
       $('#total').text(money(rounded));
       $('#balance').text(money(Math.max(0, rounded - Number($('#paid').val()||0))));
+      renderTaxBreakup();
+    }
+    function renderTaxBreakup(){
+      const groups = {};
+      lines.forEach(it => {
+        const rate = Number(it.tax_pct) || 0;
+        if (rate === 0) return;
+        const hsn = it.hsn || '—';
+        const key = hsn + '|' + rate;
+        if (!groups[key]) groups[key] = { hsn, rate, typeofduty: it.typeofduty || 'GST', taxableValue: 0, taxAmount: 0 };
+        groups[key].taxableValue += Number(it.total);
+        groups[key].taxAmount += Number(it.total) * rate / 100;
+      });
+      const entries = Object.values(groups);
+      if (entries.length === 0) { $('#taxBreakupWrap').hide(); return; }
+      let html = '<table class="table table-sm table-bordered mb-0 sf-tax-table"><thead><tr>';
+      html += '<th>HSN/SAC</th><th class="text-end">Taxable Value</th>';
+      html += '<th class="text-center" colspan="2">CGST</th>';
+      html += '<th class="text-center" colspan="2">SGST / UTGST</th>';
+      html += '<th class="text-end">Total</th>';
+      html += '</tr><tr><th></th><th></th>';
+      html += '<th class="text-end fw-normal">Rate</th><th class="text-end fw-normal">Amount</th>';
+      html += '<th class="text-end fw-normal">Rate</th><th class="text-end fw-normal">Amount</th>';
+      html += '<th></th></tr></thead><tbody>';
+      let tTax=0,tCg=0,tSg=0,tTx=0;
+      entries.forEach(g => {
+        const isGst = g.typeofduty === 'GST';
+        const half = isGst ? g.rate/2 : g.rate;
+        const cg = g.taxableValue * half / 100;
+        const sg = isGst ? cg : 0;
+        tTax+=g.taxableValue; tCg+=cg; tSg+=sg; tTx+=g.taxAmount;
+        html += `<tr><td>${esc(g.hsn)}</td><td class="text-end text-num">${money(g.taxableValue)}</td>`;
+        html += `<td class="text-end text-num">${half}%</td><td class="text-end text-num">${money(cg)}</td>`;
+        html += `<td class="text-end text-num">${isGst?half+'%':'—'}</td><td class="text-end text-num">${money(sg)}</td>`;
+        html += `<td class="text-end text-num fw-semibold">${money(g.taxAmount)}</td></tr>`;
+      });
+      html += `<tr class="fw-bold"><td>Total</td><td class="text-end text-num">${money(tTax)}</td>`;
+      html += `<td></td><td class="text-end text-num">${money(tCg)}</td>`;
+      html += `<td></td><td class="text-end text-num">${money(tSg)}</td>`;
+      html += `<td class="text-end text-num">${money(tTx)}</td></tr></tbody></table>`;
+      $('#taxBreakupBody').html(html);
+      $('#taxBreakupWrap').show();
     }
     $('#discount,#paid').on('input', totals);
 
@@ -309,42 +357,49 @@ const SF = (function(){
   }
 
   function saleEdit(sale){
-    let products=[], customers=[], taxtypes=[], lines = (sale.items||[]).map(it => ({product_id:+it.product_id, sku:it.sku, name:it.name, qty:Number(it.qty), price:Number(it.price), total:Number(it.total), tax_pct:0}));
+    let products=[], customers=[], taxtypes=[], lines = (sale.items||[]).map(it => ({product_id:+it.product_id, sku:it.sku, name:it.name, hsn:it.hsn||'', qty:Number(it.qty), price:Number(it.price), total:Number(it.total), tax_pct:0, typeofduty:'GST'}));
     Promise.all([api.get('/api/products'), api.get('/api/customers'), api.get('/api/taxtypes')]).then(([p,c,t])=>{
       products = p; customers = c; taxtypes = t;
-      // look up tax_pct for existing lines
       lines.forEach(it => {
         const prod = products.find(x=>String(x.id)===String(it.product_id));
         if (prod) {
           const tt = taxtypes.find(x=>String(x.id)===String(prod.taxtype_id));
           it.tax_pct = tt ? Number(tt.percentage) : 0;
+          it.typeofduty = tt ? tt.typeofduty : 'GST';
+          it.hsn = prod.hsn || '';
         }
       });
       $('#customerSelect').append(customers.map(x=>`<option value="${x.id}" ${String(x.id)===String(sale.customer_id||'')?'selected':''}>${esc(x.name)}</option>`).join(''));
       render();
     });
     $('#customerSelect').on('change', function(){ const c=customers.find(x=>String(x.id)===this.value); $('#customerName').val(c?c.name:'Walk-in customer'); });
-    $('#addLine').on('click', ()=>{ lines.push({product_id:'',sku:'',name:'',qty:1,price:0,total:0,tax_pct:0}); render(); });
+    $('#addLine').on('click', ()=>{ lines.push({product_id:'',sku:'',name:'',hsn:'',qty:1,price:0,total:0,tax_pct:0,typeofduty:'GST'}); render(); });
     function render(){
       $('#lines').html(lines.length===0
-        ? '<tr><td colspan="6" class="text-center text-muted py-3 small">No items.</td></tr>'
-        : lines.map((it,i)=>`<tr>
+        ? '<tr><td colspan="8" class="text-center text-muted py-3 small">No items.</td></tr>'
+        : lines.map((it,i)=>{
+            const taxAmt = Number(it.total)*Number(it.tax_pct)/100;
+            const afterTax = Number(it.total)+taxAmt;
+            return `<tr>
             <td><select class="form-select form-select-sm ln-prod" data-i="${i}"><option value="">— pick product —</option>${products.map(p=>`<option value="${p.id}" ${String(p.id)===String(it.product_id)?'selected':''}>${esc(p.sku)} — ${esc(p.name)} (stock ${p.stock})</option>`).join('')}</select></td>
             <td class="text-end"><input class="form-control form-control-sm text-end ln-qty" data-i="${i}" type="number" step="any" style="width:80px" value="${it.qty}"></td>
             <td class="text-end"><input class="form-control form-control-sm text-end ln-price" data-i="${i}" type="number" step="any" style="width:100px" value="${it.price}"></td>
             <td class="text-end text-num small text-muted">${it.tax_pct ? it.tax_pct + '%' : '—'}</td>
             <td class="text-end text-num">${money(it.total)}</td>
+            <td class="text-end text-num small">${money(taxAmt)}</td>
+            <td class="text-end text-num fw-semibold">${money(afterTax)}</td>
             <td class="text-end"><button class="btn btn-sm btn-link text-danger p-0 ln-del" data-i="${i}"><i class="bi bi-trash"></i></button></td>
-          </tr>`).join(''));
+          </tr>`;}).join(''));
       $('.ln-prod').on('change', function(){
         const i=+$(this).data('i'),pid=this.value;
         const p=products.find(x=>String(x.id)===pid);
         if(p){
-          lines[i].product_id=p.id; lines[i].sku=p.sku; lines[i].name=p.name; lines[i].price=Number(p.sale_price);
+          lines[i].product_id=p.id; lines[i].sku=p.sku; lines[i].name=p.name; lines[i].hsn=p.hsn||''; lines[i].price=Number(p.sale_price);
           const tt=taxtypes.find(x=>String(x.id)===String(p.taxtype_id));
           lines[i].tax_pct=tt?Number(tt.percentage):0;
+          lines[i].typeofduty=tt?tt.typeofduty:'GST';
         } else {
-          lines[i].tax_pct=0;
+          lines[i].tax_pct=0; lines[i].typeofduty='GST';
         }
         lines[i].total=Number(lines[i].qty)*Number(lines[i].price);
         render();
@@ -366,6 +421,48 @@ const SF = (function(){
       $('#roundoff').text(roff.toFixed(2));
       $('#total').text(money(rounded));
       $('#balance').text(money(Math.max(0, rounded - Number($('#paid').val()||0))));
+      renderTaxBreakup();
+    }
+    function renderTaxBreakup(){
+      const groups = {};
+      lines.forEach(it => {
+        const rate = Number(it.tax_pct) || 0;
+        if (rate === 0) return;
+        const hsn = it.hsn || '—';
+        const key = hsn + '|' + rate;
+        if (!groups[key]) groups[key] = { hsn, rate, typeofduty: it.typeofduty || 'GST', taxableValue: 0, taxAmount: 0 };
+        groups[key].taxableValue += Number(it.total);
+        groups[key].taxAmount += Number(it.total) * rate / 100;
+      });
+      const entries = Object.values(groups);
+      if (entries.length === 0) { $('#taxBreakupWrap').hide(); return; }
+      let html = '<table class="table table-sm table-bordered mb-0 sf-tax-table"><thead><tr>';
+      html += '<th>HSN/SAC</th><th class="text-end">Taxable Value</th>';
+      html += '<th class="text-center" colspan="2">CGST</th>';
+      html += '<th class="text-center" colspan="2">SGST / UTGST</th>';
+      html += '<th class="text-end">Total</th>';
+      html += '</tr><tr><th></th><th></th>';
+      html += '<th class="text-end fw-normal">Rate</th><th class="text-end fw-normal">Amount</th>';
+      html += '<th class="text-end fw-normal">Rate</th><th class="text-end fw-normal">Amount</th>';
+      html += '<th></th></tr></thead><tbody>';
+      let tTax=0,tCg=0,tSg=0,tTx=0;
+      entries.forEach(g => {
+        const isGst = g.typeofduty === 'GST';
+        const half = isGst ? g.rate/2 : g.rate;
+        const cg = g.taxableValue * half / 100;
+        const sg = isGst ? cg : 0;
+        tTax+=g.taxableValue; tCg+=cg; tSg+=sg; tTx+=g.taxAmount;
+        html += `<tr><td>${esc(g.hsn)}</td><td class="text-end text-num">${money(g.taxableValue)}</td>`;
+        html += `<td class="text-end text-num">${half}%</td><td class="text-end text-num">${money(cg)}</td>`;
+        html += `<td class="text-end text-num">${isGst?half+'%':'—'}</td><td class="text-end text-num">${money(sg)}</td>`;
+        html += `<td class="text-end text-num fw-semibold">${money(g.taxAmount)}</td></tr>`;
+      });
+      html += `<tr class="fw-bold"><td>Total</td><td class="text-end text-num">${money(tTax)}</td>`;
+      html += `<td></td><td class="text-end text-num">${money(tCg)}</td>`;
+      html += `<td></td><td class="text-end text-num">${money(tSg)}</td>`;
+      html += `<td class="text-end text-num">${money(tTx)}</td></tr></tbody></table>`;
+      $('#taxBreakupBody').html(html);
+      $('#taxBreakupWrap').show();
     }
     $('#discount,#paid').on('input', totals);
     $('#updateSale').on('click', function(){

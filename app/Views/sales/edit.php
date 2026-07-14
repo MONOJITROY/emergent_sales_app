@@ -22,7 +22,16 @@
     <button class="btn btn-sm btn-outline-secondary" id="addLine"><i class="bi bi-plus-lg me-1"></i>Add item</button>
   </div>
   <div class="table-responsive"><table class="table table-sm sf-table mb-0">
-    <thead><tr><th style="width:40%">Product</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">Tax %</th><th class="text-end">Total</th><th></th></tr></thead>
+    <thead><tr>
+      <th style="width:30%">Product</th>
+      <th class="text-end" style="max-width:80px !important;width:80px !important;">Qty</th>
+      <th class="text-end" style="max-width:100px !important;width:100px !important;">Price</th>
+      <th class="text-end" style="max-width:70px !important;width:70px !important;">Tax %</th>
+      <th class="text-end">Total <small class="d-block text-muted fw-normal" style="font-size:.6rem">(Before Tax)</small></th>
+      <th class="text-end">Tax Amt</th>
+      <th class="text-end">Total <small class="d-block text-muted fw-normal" style="font-size:.6rem">(After Tax)</small></th>
+      <th></th>
+    </tr></thead>
     <tbody id="lines"></tbody>
   </table></div>
 </div>
@@ -36,6 +45,10 @@
     <div class="d-flex justify-content-between small"><span>Subtotal</span><span class="text-num" id="subtotal">0.00</span></div>
     <div class="d-flex justify-content-between align-items-center mt-2"><span>Discount</span><input id="discount" type="number" step="any" class="form-control form-control-sm text-end" style="width:120px" value="<?= (float)$sale['discount'] ?>"></div>
     <div class="d-flex justify-content-between align-items-center mt-2"><span>Tax</span><input id="tax" type="text" class="form-control form-control-sm text-end bg-light" style="width:120px" readonly value="<?= (float)$sale['tax'] ?>"></div>
+    <div id="taxBreakupWrap" class="mt-2" style="display:none">
+      <a class="text-primary small text-decoration-none" data-bs-toggle="collapse" href="#taxBreakup" role="button"><i class="bi bi-chevron-down me-1"></i><small>Tax Breakup</small></a>
+      <div class="collapse mt-1" id="taxBreakup"><div id="taxBreakupBody" class="border rounded p-2"></div></div>
+    </div>
     <hr class="my-2">
     <div class="d-flex justify-content-between align-items-center mt-2"><span>Round Off</span><span class="text-num" id="roundoff"><?= (float)($sale['roundoff'] ?? 0) ?></span></div>
     <div class="d-flex justify-content-between"><strong>Grand Total</strong><strong class="text-num h5 mb-0" id="total">0.00</strong></div>
