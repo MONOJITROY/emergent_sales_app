@@ -34,6 +34,13 @@
           ]],
           ['_group', 'Reports', 'bi-bar-chart-line', [
             ['reports', 'reports', 'bi-bar-chart-line', 'Sales Reports'],
+            ['sale-report', 'reports/sale-report', 'bi-receipt', 'Sale Report'],
+            ['product-report', 'reports/product-report', 'bi-box-seam', 'Product Report'],
+            ['purchase-report', 'reports/purchase-report', 'bi-cart-plus', 'Purchase Report'],
+            ['daybook', 'reports/daybook', 'bi-journal-bookmark', 'Daybook'],
+            ['invoice-ageing', 'reports/invoice-ageing', 'bi-clock-history', 'Invoice Ageing'],
+            ['party-outstanding', 'reports/party-outstanding', 'bi-person-exclamation', 'Party Outstanding'],
+            ['party-ledger', 'reports/party-ledger', 'bi-journal-text', 'Party Ledger'],
           ]],
         ];
         if (($_user['role'] ?? '')==='admin') {

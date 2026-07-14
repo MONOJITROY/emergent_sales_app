@@ -9,25 +9,27 @@
   <div class="col-lg-8">
     <div class="card sf-card"><div class="card-body">
       <div class="text-uppercase small fw-semibold text-secondary mb-2" style="font-size:.7rem;letter-spacing:.06em">Customer</div>
-      <div class="row g-2 mb-3">
+      <div class="row g-2 mb-1">
         <div class="col-md-6">
           <select id="customerSelect" class="form-select form-select-sm" data-testid="customer-select">
             <option value="">— Select Customer —</option>
           </select>
         </div>
+        <div class="col-md-6">
+          <!-- <div class="text-uppercase small fw-semibold text-secondary mb-2" style="font-size:.7rem;letter-spacing:.06em">Receipt Type</div> -->
+          <div class="d-flex gap-3 mb-1 mt-1">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="receiptType" id="typePartial" value="partial" checked>
+              <label class="form-check-label" for="typePartial">Partial Receipt</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="receiptType" id="typeLumpsum" value="lumpsum">
+              <label class="form-check-label" for="typeLumpsum">Lumpsum Receipt</label>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="text-uppercase small fw-semibold text-secondary mb-2" style="font-size:.7rem;letter-spacing:.06em">Receipt Type</div>
-      <div class="d-flex gap-3 mb-3">
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="receiptType" id="typePartial" value="partial" checked>
-          <label class="form-check-label" for="typePartial">Partial Receipt</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="receiptType" id="typeLumpsum" value="lumpsum">
-          <label class="form-check-label" for="typeLumpsum">Lumpsum Receipt</label>
-        </div>
-      </div>
 
       <!-- Partial Receipt Section -->
       <div id="partialSection">
@@ -55,20 +57,20 @@
       <!-- Lumpsum Receipt Section -->
       <div id="lumpsumSection" style="display:none">
         <div class="row g-2 mb-3">
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label small">Total Received Amount</label>
             <input id="lumpsumAmount" type="number" step="any" min="0" class="form-control form-control-sm text-num" placeholder="0.00" data-testid="lumpsum-amount">
           </div>
-          <div class="col-md-4">
+          <div class="col-md-5">
             <label class="form-label small">Allocation Mode</label>
             <div class="d-flex gap-3 mt-1">
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="allocMode" id="allocFifo" value="fifo" checked>
-                <label class="form-check-label" for="allocFifo">Auto-Select (FIFO)</label>
+                <label class="form-check-label text-sm" for="allocFifo">Auto-Select (FIFO)</label>
               </div>
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="allocMode" id="allocManual" value="manual">
-                <label class="form-check-label" for="allocManual">User-Defined</label>
+                <label class="form-check-label text-sm" for="allocManual">User-Defined</label>
               </div>
             </div>
           </div>

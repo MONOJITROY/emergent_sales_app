@@ -487,6 +487,232 @@ const SF = (function(){
     });
   }
 
+  function partyOutstanding(){
+    const load = () => {
+      const type = $('#poType').val();
+      api.get('/api/reports/party-outstanding?type='+encodeURIComponent(type)).then(rows=>{
+        let totalOut = 0, totalInvoices = 0, custCount = 0, supCount = 0;
+        rows.forEach(r => { totalOut += Number(r.outstanding); totalInvoices += Number(r.unpaid_invoices); if(r.party_type==='Customer') custCount++; else supCount++; });
+        $('#poSummary').html(
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Parties with Dues</div><div class="value">${rows.length}</div></div></div>` +
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Customers</div><div class="value">${custCount}</div></div></div>` +
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Suppliers</div><div class="value">${supCount}</div></div></div>` +
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Outstanding</div><div class="value text-danger">${money(totalOut)}</div></div></div>`
+        );
+        $('#poRows').html(rows.length===0?'<tr><td colspan="5" class="text-center text-muted py-3">No outstanding balances.</td></tr>'
+          : rows.map(r=>`<tr>
+              <td class="fw-semibold">${esc(r.party_name)}</td>
+              <td><span class="badge sf-badge ${r.party_type==='Customer'?'sf-status-partial':'bg-light text-secondary border'}">${r.party_type}</span></td>
+              <td class="small text-muted">${esc(r.phone||'—')}</td>
+              <td class="text-end text-num">${r.unpaid_invoices}</td>
+              <td class="text-end text-num text-danger fw-semibold">${money(r.outstanding)}</td>
+            </tr>`).join(''));
+        $('#poFoot').html(rows.length>0?`<tr class="table-light fw-bold"><td colspan="3">Total</td><td class="text-end text-num">${totalInvoices}</td><td class="text-end text-num text-danger">${money(totalOut)}</td></tr>`:'');
+      });
+    };
+    $('#poType').on('change', load);
+    load();
+  }
+
+  function partyLedger(){
+    const loadParties = () => {
+      const type = $('#plPartyType').val();
+      const endpoint = type === 'customer' ? '/api/customers' : '/api/suppliers';
+      api.get(endpoint).then(rows=>{
+        $('#plPartyId').html('<option value="">Select party…</option>'+rows.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join(''));
+      });
+    };
+    const loadLedger = () => {
+      const partyType = $('#plPartyType').val();
+      const partyId = $('#plPartyId').val();
+      if (!partyId) { $('#plRows').html('<tr><td colspan="6" class="text-center text-muted py-3">Select a party to view ledger.</td></tr>'); $('#plFoot').html(''); $('#plInfo').html(''); return; }
+      let url = `/api/reports/party-ledger?party_type=${encodeURIComponent(partyType)}&party_id=${partyId}`;
+      const from = $('#plFrom').val(), to = $('#plTo').val();
+      if (from) url += '&from=' + from;
+      if (to) url += '&to=' + to;
+      api.get(url).then(d=>{
+        const entries = d.entries || [];
+        const opening = d.opening || 0;
+        const lastBal = entries.length>0 ? entries[entries.length-1].balance : opening;
+        const totalDr = entries.reduce((s,r)=>s+Number(r.debit),0);
+        const totalCr = entries.reduce((s,r)=>s+Number(r.credit),0);
+        $('#plInfo').html(`<div class="row g-3">
+          <div class="col-md-3"><div class="kpi"><div class="label">Opening Balance</div><div class="value">${money(opening)}</div></div></div>
+          <div class="col-md-3"><div class="kpi"><div class="label">Total Debit</div><div class="value">${money(totalDr)}</div></div></div>
+          <div class="col-md-3"><div class="kpi"><div class="label">Total Credit</div><div class="value">${money(totalCr)}</div></div></div>
+          <div class="col-md-3"><div class="kpi"><div class="label">Closing Balance</div><div class="value ${Number(lastBal)>0?'text-danger':''}">${money(lastBal)}</div></div></div>
+        </div>`);
+        $('#plRows').html(entries.length===0?'<tr><td colspan="6" class="text-center text-muted py-3">No transactions found.</td></tr>'
+          : entries.map(r=>`<tr>
+              <td class="small">${r.date}</td>
+              <td><span class="badge sf-badge ${r.type==='Invoice'||r.type==='Purchase'?'sf-status-partial':'bg-light text-secondary border'}">${esc(r.type)}</span></td>
+              <td class="text-num small">${esc(r.ref_no)}</td>
+              <td class="text-end text-num">${Number(r.debit)>0?money(r.debit):''}</td>
+              <td class="text-end text-num">${Number(r.credit)>0?money(r.credit):''}</td>
+              <td class="text-end text-num fw-semibold ${Number(r.balance)>0?'text-danger':''}">${money(r.balance)}</td>
+            </tr>`).join(''));
+        if(entries.length>0){
+          $('#plFoot').html(`<tr class="table-light fw-bold"><td colspan="3">Closing Balance</td><td class="text-end text-num">${money(totalDr)}</td><td class="text-end text-num">${money(totalCr)}</td><td class="text-end text-num ${Number(lastBal)>0?'text-danger':''}">${money(lastBal)}</td></tr>`);
+        } else { $('#plFoot').html(''); }
+      });
+    };
+    $('#plPartyType').on('change', ()=>{ loadParties(); $('#plRows').html('<tr><td colspan="6" class="text-center text-muted py-3">Select a party to view ledger.</td></tr>'); $('#plFoot').html(''); $('#plInfo').html(''); });
+    $('#plLoad').on('click', loadLedger);
+    loadParties();
+  }
+
+  function saleReport(){
+    const loadParties = () => api.get('/api/customers').then(rows=>{
+      $('#srCustomer').html('<option value="">All Customers</option>'+rows.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join(''));
+    });
+    const load = () => {
+      let url = '/api/reports/sale-report?';
+      const from=$('#srFrom').val(), to=$('#srTo').val(), cust=$('#srCustomer').val(), status=$('#srStatus').val();
+      if (from) url += 'from='+from+'&';
+      if (to) url += 'to='+to+'&';
+      if (cust) url += 'customer='+cust+'&';
+      if (status && status!=='all') url += 'status='+status+'&';
+      api.get(url).then(d=>{
+        const s = d.summary||{};
+        $('#srSummary').html(
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Invoices</div><div class="value">${s.cnt||0}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Sales</div><div class="value">${money(s.total||0)}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Paid</div><div class="value">${money(s.paid||0)}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Outstanding</div><div class="value text-danger">${money(s.balance||0)}</div></div></div>`
+        );
+        const rows = d.rows||[];
+        const stBadge = v => v==='paid'?'sf-status-partial':v==='partial'?'text-bg-warning':'bg-light text-secondary border';
+        $('#srRows').html(rows.length===0?'<tr><td colspan="10" class="text-center text-muted py-3">No records found.</td></tr>'
+          : rows.map(r=>`<tr>
+              <td class="text-num small">${esc(r.invoice_no)}</td><td class="small">${r.date}</td><td>${esc(r.customer)}</td>
+              <td class="text-end text-num">${money(r.subtotal)}</td><td class="text-end text-num">${money(r.discount)}</td><td class="text-end text-num">${money(r.tax)}</td>
+              <td class="text-end text-num fw-semibold">${money(r.total)}</td><td class="text-end text-num">${money(r.paid)}</td>
+              <td class="text-end text-num ${Number(r.balance)>0?'text-danger':''}">${money(r.balance)}</td>
+              <td><span class="badge sf-badge ${stBadge(r.status)}">${r.status.toUpperCase()}</span></td>
+            </tr>`).join(''));
+        if(rows.length>0){
+          $('#srFoot').html(`<tr class="table-light fw-bold"><td colspan="3">Total</td><td class="text-end text-num">${money(s.total||0)}</td><td colspan="3"></td><td class="text-end text-num">${money(s.paid||0)}</td><td class="text-end text-num text-danger">${money(s.balance||0)}</td><td></td></tr>`);
+        } else { $('#srFoot').html(''); }
+      });
+    };
+    $('#srLoad').on('click', load);
+    loadParties();
+  }
+
+  function productReport(){
+    const load = () => api.get('/api/reports/product-report').then(rows=>{
+      let totSold=0, totRevenue=0, totPurchased=0, totCost=0;
+      rows.forEach(r=>{ totSold+=Number(r.qty_sold); totRevenue+=Number(r.sales_total); totPurchased+=Number(r.qty_purchased); totCost+=Number(r.purchase_total); });
+      $('#prSummary').html(
+        `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Products</div><div class="value">${rows.length}</div></div></div>`+
+        `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Qty Sold</div><div class="value">${totSold}</div></div></div>`+
+        `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Sales Revenue</div><div class="value">${money(totRevenue)}</div></div></div>`+
+        `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Purchase Cost</div><div class="value">${money(totCost)}</div></div></div>`
+      );
+      $('#prRows').html(rows.length===0?'<tr><td colspan="12" class="text-center text-muted py-3">No products.</td></tr>'
+        : rows.map(r=>`<tr>
+            <td class="text-num small">${esc(r.sku)}</td><td class="fw-semibold">${esc(r.product)}</td>
+            <td class="small">${esc(r.category||'—')}</td><td class="small">${esc(r.unit)}</td>
+            <td class="text-end text-num">${money(r.cost_price)}</td><td class="text-end text-num">${money(r.sale_price)}</td>
+            <td class="text-end text-num ${Number(r.stock)<=Number(r.reorder_level)&&Number(r.reorder_level)>0?'text-danger fw-bold':''}">${r.stock}</td>
+            <td class="text-end text-num">${r.reorder_level}</td>
+            <td class="text-end text-num">${r.qty_sold}</td><td class="text-end text-num">${money(r.sales_total)}</td>
+            <td class="text-end text-num">${r.qty_purchased}</td><td class="text-end text-num">${money(r.purchase_total)}</td>
+          </tr>`).join(''));
+      if(rows.length>0){
+        $('#prFoot').html(`<tr class="table-light fw-bold"><td colspan="8">Total</td><td class="text-end text-num">${totSold}</td><td class="text-end text-num">${money(totRevenue)}</td><td class="text-end text-num">${totPurchased}</td><td class="text-end text-num">${money(totCost)}</td></tr>`);
+      } else { $('#prFoot').html(''); }
+    });
+    load();
+  }
+
+  function purchaseReport(){
+    const loadParties = () => api.get('/api/suppliers').then(rows=>{
+      $('#purSupplier').html('<option value="">All Suppliers</option>'+rows.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join(''));
+    });
+    const load = () => {
+      let url = '/api/reports/purchase-report?';
+      const from=$('#purFrom').val(), to=$('#purTo').val(), sup=$('#purSupplier').val(), status=$('#purStatus').val();
+      if (from) url += 'from='+from+'&';
+      if (to) url += 'to='+to+'&';
+      if (sup) url += 'supplier='+sup+'&';
+      if (status && status!=='all') url += 'status='+status+'&';
+      api.get(url).then(d=>{
+        const s = d.summary||{};
+        $('#purSummary').html(
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Invoices</div><div class="value">${s.cnt||0}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Purchases</div><div class="value">${money(s.total||0)}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Paid</div><div class="value">${money(s.paid||0)}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Outstanding</div><div class="value text-danger">${money(s.balance||0)}</div></div></div>`
+        );
+        const rows = d.rows||[];
+        const stBadge = v => v==='paid'?'sf-status-partial':v==='partial'?'text-bg-warning':'bg-light text-secondary border';
+        $('#purRows').html(rows.length===0?'<tr><td colspan="9" class="text-center text-muted py-3">No records found.</td></tr>'
+          : rows.map(r=>`<tr>
+              <td class="text-num small">${esc(r.ref_no)}</td><td class="small">${r.date}</td><td>${esc(r.supplier)}</td>
+              <td class="text-end text-num">${money(r.subtotal)}</td><td class="text-end text-num">${money(r.tax)}</td>
+              <td class="text-end text-num fw-semibold">${money(r.total)}</td><td class="text-end text-num">${money(r.paid)}</td>
+              <td class="text-end text-num ${Number(r.balance)>0?'text-danger':''}">${money(r.balance)}</td>
+              <td><span class="badge sf-badge ${stBadge(r.status)}">${r.status.toUpperCase()}</span></td>
+            </tr>`).join(''));
+        if(rows.length>0){
+          $('#purFoot').html(`<tr class="table-light fw-bold"><td colspan="3">Total</td><td class="text-end text-num">${money(s.total||0)}</td><td colspan="2"></td><td class="text-end text-num">${money(s.paid||0)}</td><td class="text-end text-num text-danger">${money(s.balance||0)}</td><td></td></tr>`);
+        } else { $('#purFoot').html(''); }
+      });
+    };
+    $('#purLoad').on('click', load);
+    loadParties();
+  }
+
+  function daybook(){
+    const load = () => {
+      const date = $('#dbDate').val();
+      api.get('/api/reports/daybook?date='+encodeURIComponent(date)).then(d=>{
+        const s = d.summary||{};
+        $('#dbSummary').html(
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Sales</div><div class="value">${money(s.sales||0)}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Purchases</div><div class="value">${money(s.purchases||0)}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Receipts</div><div class="value">${money(s.receipts||0)}</div></div></div>`+
+          `<div class="col-6 col-lg-3"><div class="kpi"><div class="label">Total Payments</div><div class="value">${money(s.payments||0)}</div></div></div>`
+        );
+        const entries = d.entries||[];
+        const typeBadge = t => {
+          if(t==='Sale') return 'sf-status-partial';
+          if(t==='Purchase') return 'text-bg-warning';
+          if(t==='Receipt') return 'bg-light text-secondary border';
+          return 'bg-light text-danger border';
+        };
+        $('#dbRows').html(entries.length===0?'<tr><td colspan="6" class="text-center text-muted py-3">No transactions for this date.</td></tr>'
+          : entries.map(e=>`<tr>
+              <td class="small">${e.date}</td>
+              <td><span class="badge sf-badge ${typeBadge(e.type)}">${esc(e.type)}</span></td>
+              <td class="text-num small">${esc(e.ref_no)}</td>
+              <td>${esc(e.party)}</td>
+              <td class="text-end text-num">${Number(e.debit)>0?money(e.debit):''}</td>
+              <td class="text-end text-num">${Number(e.credit)>0?money(e.credit):''}</td>
+            </tr>`).join(''));
+        if(entries.length>0){
+          $('#dbFoot').html(`<tr class="table-light fw-bold"><td colspan="4">Totals</td><td class="text-end text-num">${money(s.sales||0)+(s.payments||0)>0?money((s.sales||0)+(s.payments||0)):''}</td><td class="text-end text-num">${money((s.purchases||0)+(s.receipts||0))}</td></tr>`);
+        } else { $('#dbFoot').html(''); }
+      });
+    };
+    $('#dbLoad').on('click', load);
+    load();
+  }
+
+  function invoiceAgeing(){
+    const buckets = ['0-30','31-60','61-90','90+'];
+    const renderAgeing = (prefix, d) => {
+      $('#'+prefix+'Buckets').html(buckets.map(k=>`<div class="col-6 col-lg-3"><div class="kpi"><div class="label">${k} days</div><div class="value">${money(d.buckets[k]||0)}</div></div></div>`).join(''));
+      $('#'+prefix+'Rows').html(d.rows.length===0?'<tr><td colspan="7" class="text-center text-muted py-3">No outstanding invoices.</td></tr>'
+        : d.rows.map(r=>`<tr><td class="text-num small">${esc(r.invoice_no)}</td><td>${esc(r.party)}</td><td class="small text-muted">${r.date}</td><td class="text-end text-num">${r.days_overdue}</td><td><span class="badge sf-badge bg-light text-secondary border">${r.bucket}</span></td><td class="text-end text-num">${money(r.total)}</td><td class="text-end text-num text-danger">${money(r.balance)}</td></tr>`).join(''));
+    };
+    api.get('/api/reports/invoice-ageing?type=sales').then(d=> renderAgeing('sa', d));
+    $('a[data-bs-target="#tab-pa"]').on('shown.bs.tab', ()=>{
+      api.get('/api/reports/invoice-ageing?type=purchases').then(d=> renderAgeing('pa', d));
+    });
+  }
+
   function users(){
     const modal = new bootstrap.Modal(document.getElementById('userModal'));
     const load = () => api.get('/api/users').then(rows=>{
@@ -1025,6 +1251,7 @@ const SF = (function(){
 
     $('input[name="allocMode"]').on('change', function(){
       allocMode=this.value;
+      selectedAllocations=[];
       if(paymentType==='lumpsum') renderAllocations();
     });
 
@@ -1115,41 +1342,52 @@ const SF = (function(){
         $('#surplusAmt').text(money(Math.max(0,remaining)));
         $('#totalPayDisplay').text(money(totalAmt));
       } else {
-        if(!selectedAllocations.length){
-          $('#allocRows').html(invoices.map(inv=>{
-            return `<tr>
-              <td><input class="form-check-input alloc-cb" type="checkbox" data-id="${inv.id}"></td>
-              <td class="text-num small">${esc(inv.ref_no)}</td>
-              <td class="small text-muted">${inv.purchase_date}</td>
-              <td class="text-end text-num">${money(inv.total)}</td>
-              <td class="text-end text-num">${money(inv.paid)}</td>
-              <td class="text-end text-num">${money(inv.balance)}</td>
-              <td class="text-end"><input class="form-control form-control-sm text-end text-num alloc-amt" data-id="${inv.id}" type="number" step="any" min="0" max="${inv.balance}" value="0" disabled style="width:100px"></td>
-            </tr>`;
-          }).join(''));
-        }
-        bindAllocEvents();
+        $('#allocRows').html(invoices.map(inv=>{
+          const sa=selectedAllocations.find(a=>a.invoice_id===inv.id);
+          const allocAmt=sa?sa.amount:0;
+          const checked=allocAmt>0?'checked':'';
+          const amtDisabled=allocAmt===0?'disabled':'';
+          return `<tr>
+            <td><input class="form-check-input alloc-cb" type="checkbox" data-id="${inv.id}" ${checked}></td>
+            <td class="text-num small">${esc(inv.ref_no)}</td>
+            <td class="small text-muted">${inv.purchase_date}</td>
+            <td class="text-end text-num">${money(inv.total)}</td>
+            <td class="text-end text-num">${money(inv.paid)}</td>
+            <td class="text-end text-num">${money(inv.balance)}</td>
+            <td class="text-end"><input class="form-control form-control-sm text-end text-num alloc-amt" data-id="${inv.id}" type="number" step="any" min="0" max="${inv.balance}" value="${allocAmt}" ${amtDisabled} style="width:100px"></td>
+          </tr>`;
+        }).join(''));
+        recalcLumpsum();
+        syncAllocLocks();
       }
       updateSubmitState();
     }
 
     $(document).on('change','.alloc-cb',function(){
+      if(allocMode!=='manual') return;
       const id=Number($(this).data('id'));
       const inv=invoices.find(x=>x.id===id);
       if(!inv) return;
       const amtInput=$(`.alloc-amt[data-id="${id}"]`);
       if(this.checked){
-        amtInput.prop('disabled',false).val(inv.balance).focus();
+        const totalAmt=Number($('#lumpsumAmount').val()||0);
+        const currentAlloc=selectedAllocations.reduce((s,a)=>s+a.amount,0);
+        const remaining=Math.max(0,totalAmt-currentAlloc);
+        const fillAmt=Math.min(remaining,Number(inv.balance));
+        amtInput.prop('disabled',false).val(fillAmt).focus();
         const existing=selectedAllocations.find(a=>a.invoice_id===id);
-        if(!existing) selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:Number(inv.balance)});
+        if(existing) existing.amount=fillAmt;
+        else selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:fillAmt});
       } else {
         amtInput.prop('disabled',true).val(0);
         selectedAllocations=selectedAllocations.filter(a=>a.invoice_id!==id);
       }
       recalcLumpsum();
+      syncAllocLocks();
     });
 
     $(document).on('input','.alloc-amt',function(){
+      if(allocMode!=='manual') return;
       const id=Number($(this).data('id'));
       const inv=invoices.find(x=>x.id===id);
       if(!inv) return;
@@ -1158,6 +1396,7 @@ const SF = (function(){
       if(existing) existing.amount=val;
       else selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:val});
       recalcLumpsum();
+      syncAllocLocks();
     });
 
     function recalcLumpsum(){
@@ -1169,31 +1408,29 @@ const SF = (function(){
       updateSubmitState();
     }
 
-    function bindAllocEvents(){
-      $(document).off('change','.alloc-cb').off('input','.alloc-amt');
-      $(document).on('change','.alloc-cb',function(){
-        const id=Number($(this).data('id'));
+    function syncAllocLocks(){
+      if(allocMode!=='manual') return;
+      if(!selectedAllocations.length){
+        $('#allocRows .alloc-cb').prop('disabled',false);
+        return;
+      }
+      const totalAmt=Number($('#lumpsumAmount').val()||0);
+      const totalAlloc=selectedAllocations.reduce((s,a)=>s+a.amount,0);
+      const remaining=Math.max(0,totalAmt-totalAlloc);
+      $('#allocRows tr').each(function(){
+        const cb=$(this).find('.alloc-cb');
+        const inp=$(this).find('.alloc-amt');
+        const id=Number(cb.data('id'));
         const inv=invoices.find(x=>x.id===id);
         if(!inv) return;
-        const amtInput=$(`.alloc-amt[data-id="${id}"]`);
-        if(this.checked){
-          amtInput.prop('disabled',false).val(inv.balance).focus();
-          selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:Number(inv.balance)});
+        if(cb.prop('checked')) return;
+        if(remaining<=0||Number(inv.balance)>remaining){
+          cb.prop('disabled',true);
+          inp.prop('disabled',true);
         } else {
-          amtInput.prop('disabled',true).val(0);
-          selectedAllocations=selectedAllocations.filter(a=>a.invoice_id!==id);
+          cb.prop('disabled',false);
+          inp.prop('disabled',true);
         }
-        recalcLumpsum();
-      });
-      $(document).on('input','.alloc-amt',function(){
-        const id=Number($(this).data('id'));
-        const inv=invoices.find(x=>x.id===id);
-        if(!inv) return;
-        const val=Math.min(Number(this.value||0),Number(inv.balance));
-        const existing=selectedAllocations.find(a=>a.invoice_id===id);
-        if(existing) existing.amount=val;
-        else selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:val});
-        recalcLumpsum();
       });
     }
 
@@ -1402,5 +1639,5 @@ const SF = (function(){
     load();
   }
 
-  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings, taxtypes, invoiceTemplates, receipts, receiptNew, payments, paymentNew, reconciliationReceipts, reconciliationPayments };
+  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, partyOutstanding, partyLedger, saleReport, productReport, purchaseReport, daybook, invoiceAgeing, users, companySettings, taxtypes, invoiceTemplates, receipts, receiptNew, payments, paymentNew, reconciliationReceipts, reconciliationPayments };
 })();

@@ -95,7 +95,14 @@ final class App
         $r->get('/sales/new',  ['App\\Controllers\\SalesController',     'create']);
         $r->get('/sales/{id}', ['App\\Controllers\\SalesController',     'show']);
         $r->get('/purchases',  ['App\\Controllers\\PurchasesController', 'index']);
-        $r->get('/reports',    ['App\\Controllers\\ReportsController',   'index']);
+        $r->get('/reports',                ['App\\Controllers\\ReportsController',   'index']);
+        $r->get('/reports/party-outstanding', ['App\\Controllers\\ReportsController', 'partyOutstanding']);
+        $r->get('/reports/party-ledger',      ['App\\Controllers\\ReportsController', 'partyLedger']);
+        $r->get('/reports/sale-report',       ['App\\Controllers\\ReportsController', 'saleReport']);
+        $r->get('/reports/product-report',    ['App\\Controllers\\ReportsController', 'productReport']);
+        $r->get('/reports/purchase-report',   ['App\\Controllers\\ReportsController', 'purchaseReport']);
+        $r->get('/reports/daybook',           ['App\\Controllers\\ReportsController', 'daybook']);
+        $r->get('/reports/invoice-ageing',    ['App\\Controllers\\ReportsController', 'invoiceAgeing']);
         $r->get('/users',          ['App\\Controllers\\UsersController',     'index']);
         $r->get('/company/settings',    ['App\\Controllers\\CompanyController',        'index']);
         $r->get('/invoice-templates',              ['App\\Controllers\\InvoiceTemplatesController','index']);
@@ -140,6 +147,13 @@ final class App
         $r->get('/api/reports/sales-by-customer', ['App\\Controllers\\ReportsController', 'salesByCustomer']);
         $r->get('/api/reports/sales-by-product',  ['App\\Controllers\\ReportsController', 'salesByProduct']);
         $r->get('/api/reports/invoice-aging',     ['App\\Controllers\\ReportsController', 'invoiceAging']);
+        $r->get('/api/reports/party-outstanding', ['App\\Controllers\\ReportsController', 'apiPartyOutstanding']);
+        $r->get('/api/reports/party-ledger',      ['App\\Controllers\\ReportsController', 'apiPartyLedger']);
+        $r->get('/api/reports/sale-report',       ['App\\Controllers\\ReportsController', 'apiSaleReport']);
+        $r->get('/api/reports/product-report',    ['App\\Controllers\\ReportsController', 'apiProductReport']);
+        $r->get('/api/reports/purchase-report',   ['App\\Controllers\\ReportsController', 'apiPurchaseReport']);
+        $r->get('/api/reports/daybook',           ['App\\Controllers\\ReportsController', 'apiDaybook']);
+        $r->get('/api/reports/invoice-ageing',    ['App\\Controllers\\ReportsController', 'apiInvoiceAgeing']);
 
         // Exports & email
         $r->get('/api/exports/sales.xlsx',           ['App\\Controllers\\ExportController', 'salesXlsx']);
