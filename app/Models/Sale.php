@@ -9,10 +9,11 @@ final class Sale extends Model { protected static string $table = 'sales';
         return $row;
     }
     public static function listAll(string $q = ''): array {
+        $cols = 's.*, COALESCE(s.paid,0) AS paid, COALESCE(s.balance, s.total) AS balance, COALESCE(s.status,"unpaid") AS status';
         if ($q === '') {
-            return self::db()->query('SELECT s.*, (SELECT COUNT(*) FROM sale_items WHERE sale_id = s.id) AS item_count FROM sales s ORDER BY id DESC')->fetchAll();
+            return self::db()->query("SELECT {$cols}, (SELECT COUNT(*) FROM sale_items WHERE sale_id = s.id) AS item_count FROM sales s ORDER BY id DESC")->fetchAll();
         }
-        $st = self::db()->prepare('SELECT s.*, (SELECT COUNT(*) FROM sale_items WHERE sale_id = s.id) AS item_count FROM sales s WHERE invoice_no LIKE ? OR customer_name LIKE ? ORDER BY id DESC');
+        $st = self::db()->prepare("SELECT {$cols}, (SELECT COUNT(*) FROM sale_items WHERE sale_id = s.id) AS item_count FROM sales s WHERE invoice_no LIKE ? OR customer_name LIKE ? ORDER BY id DESC");
         $st->execute(["%$q%", "%$q%"]); return $st->fetchAll();
     }
     public static function nextInvoiceNo(): string {

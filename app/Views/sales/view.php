@@ -80,11 +80,4 @@
 </div></div>
 <?php endif; ?>
 
-<?php if ((float)$sale['balance'] > 0): ?>
-<div class="card sf-card mt-3 no-print"><div class="card-body">
-  <div class="text-uppercase small fw-semibold text-secondary mb-2" style="font-size:.7rem;letter-spacing:.06em">Record payment</div>
-  <div class="d-flex gap-2"><input id="payAmt" type="number" step="any" class="form-control form-control-sm" style="max-width:180px" placeholder="Amount">
-    <button class="btn btn-sm sf-btn-primary" id="payBtn" data-id="<?= (int)$sale['id'] ?>">Record</button></div>
-</div></div>
-<?php endif; ?>
 <?php $GLOBALS['pageScript'] = '<script>SF.saleView(' . (int)$sale['id'] . ');</script>'; ?>

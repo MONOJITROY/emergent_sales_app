@@ -28,6 +28,7 @@ final class PurchasesController extends Controller {
                 'supplier_inv_no'=>$invNo,
                 'supplier_inv_date'=>$r->input('supplier_inv_date') ?: null,
                 'subtotal'=>round($subtotal,2),'tax'=>$tax,'total'=>$total,
+                'paid'=>0,'balance'=>$total,'status'=>'unpaid',
                 'notes'=>(string)$r->input('notes',''),
                 'created_by'=>$user['id'] ?? null,
             ]);
@@ -37,6 +38,9 @@ final class PurchasesController extends Controller {
                 $pid=(int)$it['product_id']; $qty=(float)$it['qty']; $price=(float)$it['price']; $tot=(float)($it['total'] ?? ($qty*$price));
                 $insItem->execute([$purId, $pid, (string)$it['sku'], (string)$it['name'], $qty, $price, $tot]);
                 $incStock->execute([$qty, $price, $pid]);
+            }
+            if ($supId && $total > 0) {
+                $pdo->prepare('UPDATE suppliers SET balance = balance + ? WHERE id = ?')->execute([$total, $supId]);
             }
             $pdo->commit();
             $this->json(['ok'=>true,'id'=>$purId,'ref_no'=>$refNo]);
@@ -54,6 +58,9 @@ final class PurchasesController extends Controller {
         try {
             $dec = $pdo->prepare('UPDATE products SET stock = stock - ? WHERE id = ?');
             foreach ($items as $it) { $dec->execute([(float)$it['qty'], (int)$it['product_id']]); }
+            if (!empty($p['supplier_id']) && (float)($p['balance'] ?? 0) > 0) {
+                $pdo->prepare('UPDATE suppliers SET balance = balance - ? WHERE id = ?')->execute([(float)$p['balance'], (int)$p['supplier_id']]);
+            }
             Purchase::delete($id);
             $pdo->commit(); $this->json(['ok'=>true]);
         } catch (\Throwable $e) {

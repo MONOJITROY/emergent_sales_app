@@ -61,7 +61,7 @@ const SF = (function(){
         kpi("Today's sales", money(s.today_sales), 'INR') +
         kpi('Outstanding', money(s.outstanding), 'Across all unpaid') +
         kpi('Products', s.products_count, s.low_stock_count + ' low') +
-        kpi('Customers', s.customers_count, '')
+        kpi('Pending Recon', money(s.pending_reconciliation||0), 'Awaiting settlement')
       );
       // chart
       new Chart(document.getElementById('salesChart'), {
@@ -289,11 +289,6 @@ const SF = (function(){
   }
 
   function saleView(id){
-    $('#payBtn').on('click', function(){
-      const amt = Number($('#payAmt').val()||0);
-      if (amt<=0) return iziToast.error({title:'Error',message:'Enter a positive amount',position:'bottomRight'});
-      api.post('/api/sales/'+id+'/payment', {amount: amt}).then(()=>{ iziToast.success({title:'Payment recorded',position:'bottomRight'}); setTimeout(()=>location.reload(),400); });
-    });
     $('#deleteSale').on('click', function(){
       confirmAction('Delete this invoice?', ()=> api.del('/api/sales/'+id).then(()=>{ iziToast.success({title:'Deleted',position:'bottomRight'}); setTimeout(()=>location.href=baseUrl+'/sales',300); }));
     });
@@ -395,12 +390,14 @@ const SF = (function(){
     const load = () => {
       const q = $('#searchInput').val()||'';
       api.get('/api/purchases' + (q?`?q=${encodeURIComponent(q)}`:'')).then(rows=>{
-        if (!rows.length) return $('#rows').html('<tr><td colspan="8" class="text-center text-muted py-3">No purchases yet.</td></tr>');
+        if (!rows.length) return $('#rows').html('<tr><td colspan="9" class="text-center text-muted py-3">No purchases yet.</td></tr>');
         $('#rows').html(rows.map(r=>`<tr>
           <td class="text-num small">${esc(r.ref_no)}</td><td>${esc(r.supplier_name)}</td>
           <td class="small text-muted">${r.purchase_date}</td><td class="text-muted small">${r.item_count||0}</td>
-          <td class="text-end text-num">${money(r.subtotal)}</td><td class="text-end text-num">${money(r.tax)}</td>
           <td class="text-end text-num fw-semibold">${money(r.total)}</td>
+          <td class="text-end text-num">${money(r.paid||0)}</td>
+          <td class="text-end text-num ${Number(r.balance)>0?'text-danger':''}">${money(r.balance||0)}</td>
+          <td><span class="badge sf-badge sf-status-${r.status||'unpaid'}">${(r.status||'unpaid').toUpperCase()}</span></td>
           <td class="text-end"><button class="btn btn-sm btn-link p-1 text-danger del" data-id="${r.id}" data-ref="${esc(r.ref_no)}"><i class="bi bi-trash"></i></button></td>
         </tr>`).join(''));
         $('#rows .del').on('click', function(){
@@ -707,5 +704,703 @@ const SF = (function(){
     load();
   }
 
-  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings, taxtypes, invoiceTemplates };
+  // ---- Receipts ----
+  function receipts(){
+    const load = () => {
+      const q = $('#searchInput').val()||'';
+      api.get('/api/receipts' + (q?`?q=${encodeURIComponent(q)}`:'')).then(rows=>{
+        if (!rows.length) return $('#rows').html('<tr><td colspan="8" class="text-center text-muted py-3">No receipts yet.</td></tr>');
+        $('#rows').html(rows.map(r => {
+          const modeLabel = {cash:'Cash',cheque:'Cheque',upi:'UPI',transfer:'Transfer'}[r.mode]||r.mode;
+          const reconBadge = r.reconciliation_status==='pending'
+            ? '<span class="badge sf-badge sf-status-partial" title="Pending Reconciliation">RP</span>'
+            : '<span class="badge sf-badge sf-status-paid">Reconciled</span>';
+          return `<tr>
+            <td class="text-num small fw-semibold">${esc(r.transaction_no)}</td>
+            <td>${esc(r.party_name)}</td>
+            <td class="small text-muted">${r.transaction_date}</td>
+            <td class="text-end text-num">${money(r.amount)}</td>
+            <td>${modeLabel}</td>
+            <td class="small text-muted">${esc(r.reference_no||'—')}</td>
+            <td>${reconBadge}</td>
+            <td class="text-end"><a class="btn btn-sm btn-link p-1 text-secondary" href="${baseUrl}/api/receipts/${r.id}/pdf?download" title="Download PDF"><i class="bi bi-file-earmark-pdf"></i></a></td>
+          </tr>`;
+        }).join(''));
+      });
+    };
+    $('#searchInput').on('input', debounce(load, 250));
+    load();
+  }
+
+  function receiptNew(){
+    let customers=[], invoices=[], selectedAllocations=[];
+    let receiptType='partial', allocMode='fifo';
+
+    api.get('/api/customers').then(c=>{
+      customers=c;
+      $('#customerSelect').append(customers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join(''));
+    });
+
+    $('input[name="receiptType"]').on('change', function(){
+      receiptType=this.value;
+      if(receiptType==='partial'){
+        $('#partialSection').show(); $('#lumpsumSection').hide();
+      } else {
+        $('#partialSection').hide(); $('#lumpsumSection').show();
+      }
+      updateSubmitState();
+    });
+
+    $('input[name="allocMode"]').on('change', function(){
+      allocMode=this.value;
+      if(receiptType==='lumpsum') renderAllocations();
+    });
+
+    $('input[name="payMode"]').on('change', function(){
+      const v=this.value;
+      if(v==='cheque'||v==='transfer') $('#refFields').show();
+      else $('#refFields').hide();
+    });
+
+    $('#customerSelect').on('change', function(){
+      const cid=Number(this.value);
+      if(!cid){ invoices=[]; clearInvoiceSelect(); return; }
+      api.get('/api/customers/'+cid+'/pending-invoices').then(d=>{
+        invoices=d.invoices||[];
+        populateInvoiceSelect();
+        if(receiptType==='lumpsum') renderAllocations();
+      });
+    });
+
+    function clearInvoiceSelect(){
+      $('#invoiceSelect').html('<option value="">— No invoices —</option>').prop('disabled',true);
+      $('#invoiceInfo').hide();
+    }
+
+    function populateInvoiceSelect(){
+      if(!invoices.length){ clearInvoiceSelect(); return; }
+      const sel=$('#invoiceSelect');
+      sel.html('<option value="">— Select invoice —</option>'+invoices.map(x=>`<option value="${x.id}" data-bal="${x.balance}">${x.invoice_no} — Balance: ${money(x.balance)}</option>`).join('')).prop('disabled',false);
+    }
+
+    $('#invoiceSelect').on('change', function(){
+      const inv=invoices.find(x=>String(x.id)===String(this.value));
+      if(!inv){ $('#invoiceInfo').hide(); return; }
+      $('#invTotal').text(money(inv.total));
+      $('#invPaid').text(money(inv.paid));
+      $('#invRemaining').text(money(inv.balance));
+      $('#partialAmount').val('').attr('max',inv.balance).focus();
+      $('#invoiceInfo').show();
+    });
+
+    $('#partialAmount').on('input', function(){
+      const inv=invoices.find(x=>String(x.id)===$('#invoiceSelect').val());
+      if(!inv) return;
+      const amt=Math.min(Number(this.value||0),Number(inv.balance));
+      const v=amt>0?amt:'';
+      $('#totalReceiveDisplay').text(money(v));
+      updateSubmitState();
+    });
+
+    $('#lumpsumAmount').on('input', function(){
+      renderAllocations();
+    });
+
+    function renderAllocations(){
+      const totalAmt=Number($('#lumpsumAmount').val()||0);
+      if(!invoices.length||totalAmt<=0){
+        $('#allocRows').html('<tr><td colspan="7" class="text-center text-muted py-3">No pending invoices</td></tr>');
+        $('#surplusAmt').text(money(0));
+        $('#totalReceiveDisplay').text(money(0));
+        updateSubmitState();
+        return;
+      }
+
+      if(allocMode==='fifo'){
+        selectedAllocations=[];
+        let remaining=totalAmt;
+        for(const inv of invoices){
+          if(remaining<=0) break;
+          const bal=Number(inv.balance);
+          const alloc=Math.min(remaining,bal);
+          selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.invoice_no,amount:alloc});
+          remaining-=alloc;
+        }
+        $('#allocRows').html(invoices.map(inv=>{
+          const sa=selectedAllocations.find(a=>a.invoice_id===inv.id);
+          const allocAmt=sa?sa.amount:0;
+          const disabled=allocAmt===0?'disabled':'';
+          return `<tr>
+            <td><input class="form-check-input alloc-cb" type="checkbox" data-id="${inv.id}" ${allocAmt>0?'checked':''} ${disabled?'disabled':''}></td>
+            <td class="text-num small">${esc(inv.invoice_no)}</td>
+            <td class="small text-muted">${inv.sale_date}</td>
+            <td class="text-end text-num">${money(inv.total)}</td>
+            <td class="text-end text-num">${money(inv.paid)}</td>
+            <td class="text-end text-num">${money(inv.balance)}</td>
+            <td class="text-end"><input class="form-control form-control-sm text-end text-num alloc-amt" data-id="${inv.id}" type="number" step="any" min="0" max="${inv.balance}" value="${allocAmt}" ${disabled} style="width:100px"></td>
+          </tr>`;
+        }).join(''));
+        $('#surplusAmt').text(money(Math.max(0,remaining)));
+        $('#totalReceiveDisplay').text(money(totalAmt));
+      } else {
+        if(!selectedAllocations.length){
+          $('#allocRows').html(invoices.map(inv=>{
+            return `<tr>
+              <td><input class="form-check-input alloc-cb" type="checkbox" data-id="${inv.id}"></td>
+              <td class="text-num small">${esc(inv.invoice_no)}</td>
+              <td class="small text-muted">${inv.sale_date}</td>
+              <td class="text-end text-num">${money(inv.total)}</td>
+              <td class="text-end text-num">${money(inv.paid)}</td>
+              <td class="text-end text-num">${money(inv.balance)}</td>
+              <td class="text-end"><input class="form-control form-control-sm text-end text-num alloc-amt" data-id="${inv.id}" type="number" step="any" min="0" max="${inv.balance}" value="0" disabled style="width:100px"></td>
+            </tr>`;
+          }).join(''));
+        }
+        bindAllocEvents();
+      }
+      updateSubmitState();
+    }
+
+    $(document).on('change','.alloc-cb',function(){
+      const id=Number($(this).data('id'));
+      const inv=invoices.find(x=>x.id===id);
+      if(!inv) return;
+      const amtInput=$(`.alloc-amt[data-id="${id}"]`);
+      if(this.checked){
+        amtInput.prop('disabled',false).val(inv.balance).focus();
+        const existing=selectedAllocations.find(a=>a.invoice_id===id);
+        if(!existing) selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.invoice_no,amount:Number(inv.balance)});
+      } else {
+        amtInput.prop('disabled',true).val(0);
+        selectedAllocations=selectedAllocations.filter(a=>a.invoice_id!==id);
+      }
+      recalcLumpsum();
+    });
+
+    $(document).on('input','.alloc-amt',function(){
+      const id=Number($(this).data('id'));
+      const inv=invoices.find(x=>x.id===id);
+      if(!inv) return;
+      const val=Math.min(Number(this.value||0),Number(inv.balance));
+      const existing=selectedAllocations.find(a=>a.invoice_id===id);
+      if(existing) existing.amount=val;
+      else selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.invoice_no,amount:val});
+      recalcLumpsum();
+    });
+
+    function recalcLumpsum(){
+      const totalAmt=Number($('#lumpsumAmount').val()||0);
+      const totalAlloc=selectedAllocations.reduce((s,a)=>s+a.amount,0);
+      const surplus=Math.max(0,totalAmt-totalAlloc);
+      $('#surplusAmt').text(money(surplus));
+      $('#totalReceiveDisplay').text(money(totalAmt));
+      updateSubmitState();
+    }
+
+    function bindAllocEvents(){
+      $(document).off('change','.alloc-cb').off('input','.alloc-amt');
+      $(document).on('change','.alloc-cb',function(){
+        const id=Number($(this).data('id'));
+        const inv=invoices.find(x=>x.id===id);
+        if(!inv) return;
+        const amtInput=$(`.alloc-amt[data-id="${id}"]`);
+        if(this.checked){
+          amtInput.prop('disabled',false).val(inv.balance).focus();
+          selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.invoice_no,amount:Number(inv.balance)});
+        } else {
+          amtInput.prop('disabled',true).val(0);
+          selectedAllocations=selectedAllocations.filter(a=>a.invoice_id!==id);
+        }
+        recalcLumpsum();
+      });
+      $(document).on('input','.alloc-amt',function(){
+        const id=Number($(this).data('id'));
+        const inv=invoices.find(x=>x.id===id);
+        if(!inv) return;
+        const val=Math.min(Number(this.value||0),Number(inv.balance));
+        const existing=selectedAllocations.find(a=>a.invoice_id===id);
+        if(existing) existing.amount=val;
+        else selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.invoice_no,amount:val});
+        recalcLumpsum();
+      });
+    }
+
+    function updateSubmitState(){
+      const hasCustomer=Number($('#customerSelect').val()||0)>0;
+      let hasAmount=false;
+      if(receiptType==='partial'){
+        hasAmount=Number($('#partialAmount').val()||0)>0;
+      } else {
+        hasAmount=selectedAllocations.some(a=>a.amount>0)&&Number($('#lumpsumAmount').val()||0)>0;
+      }
+      $('#submitReceipt').prop('disabled',!(hasCustomer&&hasAmount));
+    }
+
+    $('#submitReceipt').on('click', function(){
+      const btn=$(this);
+      const customerId=Number($('#customerSelect').val()||0);
+      if(!customerId) return iziToast.error({title:'Error',message:'Select a customer',position:'bottomRight'});
+
+      let amount=0, allocations=[];
+      if(receiptType==='partial'){
+        const inv=invoices.find(x=>String(x.id)===$('#invoiceSelect').val());
+        if(!inv) return iziToast.error({title:'Error',message:'Select an invoice',position:'bottomRight'});
+        amount=Number($('#partialAmount').val()||0);
+        if(amount<=0) return iziToast.error({title:'Error',message:'Enter a valid amount',position:'bottomRight'});
+        if(amount>Number(inv.balance)) return iziToast.error({title:'Error',message:'Amount exceeds invoice balance',position:'bottomRight'});
+        allocations=[{invoice_id:inv.id,invoice_no:inv.invoice_no,amount:amount}];
+      } else {
+        amount=Number($('#lumpsumAmount').val()||0);
+        if(amount<=0) return iziToast.error({title:'Error',message:'Enter the received amount',position:'bottomRight'});
+        const validAllocs=selectedAllocations.filter(a=>a.amount>0);
+        if(!validAllocs.length) return iziToast.error({title:'Error',message:'Select at least one invoice',position:'bottomRight'});
+        allocations=validAllocs;
+      }
+
+      btn.prop('disabled',true).html('<span class="spinner-border spinner-border-sm me-1"></span>Processing...');
+      api.post('/api/receipts',{
+        customer_id:customerId, amount:amount,
+        mode:$('input[name="payMode"]:checked').val(),
+        transaction_date:$('#txDate').val(),
+        reference_no:$('#referenceNo').val(),
+        bank_name:$('#bankName').val(),
+        notes:$('#txNotes').val(),
+        allocations:allocations,
+      }).then(r=>{
+        iziToast.success({title:`Receipt ${r.transaction_no} created`,position:'bottomRight'});
+        window.location.href=baseUrl+'/api/receipts/'+r.id+'/pdf?download';
+        setTimeout(()=>location.href=baseUrl+'/receipts',1500);
+      }).catch(()=>{
+        btn.prop('disabled',false).html('<i class="bi bi-check-lg me-1"></i>Submit Receipt');
+      });
+    });
+  }
+
+  // ---- Payments ----
+  function payments(){
+    const load = () => {
+      const q = $('#searchInput').val()||'';
+      api.get('/api/payments' + (q?`?q=${encodeURIComponent(q)}`:'')).then(rows=>{
+        if (!rows.length) return $('#rows').html('<tr><td colspan="8" class="text-center text-muted py-3">No payments yet.</td></tr>');
+        $('#rows').html(rows.map(r => {
+          const modeLabel = {cash:'Cash',cheque:'Cheque',upi:'UPI',transfer:'Transfer'}[r.mode]||r.mode;
+          const reconBadge = r.reconciliation_status==='pending'
+            ? '<span class="badge sf-badge sf-status-partial" title="Pending Reconciliation">RP</span>'
+            : '<span class="badge sf-badge sf-status-paid">Reconciled</span>';
+          return `<tr>
+            <td class="text-num small fw-semibold">${esc(r.transaction_no)}</td>
+            <td>${esc(r.party_name)}</td>
+            <td class="small text-muted">${r.transaction_date}</td>
+            <td class="text-end text-num">${money(r.amount)}</td>
+            <td>${modeLabel}</td>
+            <td class="small text-muted">${esc(r.reference_no||'—')}</td>
+            <td>${reconBadge}</td>
+            <td class="text-end"><a class="btn btn-sm btn-link p-1 text-secondary" href="${baseUrl}/api/payments/${r.id}/pdf?download" title="Download PDF"><i class="bi bi-file-earmark-pdf"></i></a></td>
+          </tr>`;
+        }).join(''));
+      });
+    };
+    $('#searchInput').on('input', debounce(load, 250));
+    load();
+  }
+
+  function paymentNew(){
+    let suppliers=[], invoices=[], selectedAllocations=[];
+    let paymentType='partial', allocMode='fifo';
+
+    api.get('/api/suppliers').then(s=>{
+      suppliers=s;
+      $('#supplierSelect').append(suppliers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join(''));
+    });
+
+    $('input[name="paymentType"]').on('change', function(){
+      paymentType=this.value;
+      if(paymentType==='partial'){
+        $('#partialSection').show(); $('#lumpsumSection').hide();
+      } else {
+        $('#partialSection').hide(); $('#lumpsumSection').show();
+      }
+      updateSubmitState();
+    });
+
+    $('input[name="allocMode"]').on('change', function(){
+      allocMode=this.value;
+      if(paymentType==='lumpsum') renderAllocations();
+    });
+
+    $('input[name="payMode"]').on('change', function(){
+      const v=this.value;
+      if(v==='cheque'||v==='transfer') $('#refFields').show();
+      else $('#refFields').hide();
+    });
+
+    $('#supplierSelect').on('change', function(){
+      const sid=Number(this.value);
+      if(!sid){ invoices=[]; clearInvoiceSelect(); return; }
+      api.get('/api/suppliers/'+sid+'/pending-invoices').then(d=>{
+        invoices=d.invoices||[];
+        populateInvoiceSelect();
+        if(paymentType==='lumpsum') renderAllocations();
+      });
+    });
+
+    function clearInvoiceSelect(){
+      $('#invoiceSelect').html('<option value="">— No invoices —</option>').prop('disabled',true);
+      $('#invoiceInfo').hide();
+    }
+
+    function populateInvoiceSelect(){
+      if(!invoices.length){ clearInvoiceSelect(); return; }
+      const sel=$('#invoiceSelect');
+      sel.html('<option value="">— Select invoice —</option>'+invoices.map(x=>`<option value="${x.id}" data-bal="${x.balance}">${x.ref_no} — Balance: ${money(x.balance)}</option>`).join('')).prop('disabled',false);
+    }
+
+    $('#invoiceSelect').on('change', function(){
+      const inv=invoices.find(x=>String(x.id)===String(this.value));
+      if(!inv){ $('#invoiceInfo').hide(); return; }
+      $('#invTotal').text(money(inv.total));
+      $('#invPaid').text(money(inv.paid));
+      $('#invRemaining').text(money(inv.balance));
+      $('#partialAmount').val('').attr('max',inv.balance).focus();
+      $('#invoiceInfo').show();
+    });
+
+    $('#partialAmount').on('input', function(){
+      const inv=invoices.find(x=>String(x.id)===$('#invoiceSelect').val());
+      if(!inv) return;
+      const amt=Math.min(Number(this.value||0),Number(inv.balance));
+      const v=amt>0?amt:'';
+      $('#totalPayDisplay').text(money(v));
+      updateSubmitState();
+    });
+
+    $('#lumpsumAmount').on('input', function(){
+      renderAllocations();
+    });
+
+    function renderAllocations(){
+      const totalAmt=Number($('#lumpsumAmount').val()||0);
+      if(!invoices.length||totalAmt<=0){
+        $('#allocRows').html('<tr><td colspan="7" class="text-center text-muted py-3">No pending invoices</td></tr>');
+        $('#surplusAmt').text(money(0));
+        $('#totalPayDisplay').text(money(0));
+        updateSubmitState();
+        return;
+      }
+
+      if(allocMode==='fifo'){
+        selectedAllocations=[];
+        let remaining=totalAmt;
+        for(const inv of invoices){
+          if(remaining<=0) break;
+          const bal=Number(inv.balance);
+          const alloc=Math.min(remaining,bal);
+          selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:alloc});
+          remaining-=alloc;
+        }
+        $('#allocRows').html(invoices.map(inv=>{
+          const sa=selectedAllocations.find(a=>a.invoice_id===inv.id);
+          const allocAmt=sa?sa.amount:0;
+          const disabled=allocAmt===0?'disabled':'';
+          return `<tr>
+            <td><input class="form-check-input alloc-cb" type="checkbox" data-id="${inv.id}" ${allocAmt>0?'checked':''} ${disabled?'disabled':''}></td>
+            <td class="text-num small">${esc(inv.ref_no)}</td>
+            <td class="small text-muted">${inv.purchase_date}</td>
+            <td class="text-end text-num">${money(inv.total)}</td>
+            <td class="text-end text-num">${money(inv.paid)}</td>
+            <td class="text-end text-num">${money(inv.balance)}</td>
+            <td class="text-end"><input class="form-control form-control-sm text-end text-num alloc-amt" data-id="${inv.id}" type="number" step="any" min="0" max="${inv.balance}" value="${allocAmt}" ${disabled} style="width:100px"></td>
+          </tr>`;
+        }).join(''));
+        $('#surplusAmt').text(money(Math.max(0,remaining)));
+        $('#totalPayDisplay').text(money(totalAmt));
+      } else {
+        if(!selectedAllocations.length){
+          $('#allocRows').html(invoices.map(inv=>{
+            return `<tr>
+              <td><input class="form-check-input alloc-cb" type="checkbox" data-id="${inv.id}"></td>
+              <td class="text-num small">${esc(inv.ref_no)}</td>
+              <td class="small text-muted">${inv.purchase_date}</td>
+              <td class="text-end text-num">${money(inv.total)}</td>
+              <td class="text-end text-num">${money(inv.paid)}</td>
+              <td class="text-end text-num">${money(inv.balance)}</td>
+              <td class="text-end"><input class="form-control form-control-sm text-end text-num alloc-amt" data-id="${inv.id}" type="number" step="any" min="0" max="${inv.balance}" value="0" disabled style="width:100px"></td>
+            </tr>`;
+          }).join(''));
+        }
+        bindAllocEvents();
+      }
+      updateSubmitState();
+    }
+
+    $(document).on('change','.alloc-cb',function(){
+      const id=Number($(this).data('id'));
+      const inv=invoices.find(x=>x.id===id);
+      if(!inv) return;
+      const amtInput=$(`.alloc-amt[data-id="${id}"]`);
+      if(this.checked){
+        amtInput.prop('disabled',false).val(inv.balance).focus();
+        const existing=selectedAllocations.find(a=>a.invoice_id===id);
+        if(!existing) selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:Number(inv.balance)});
+      } else {
+        amtInput.prop('disabled',true).val(0);
+        selectedAllocations=selectedAllocations.filter(a=>a.invoice_id!==id);
+      }
+      recalcLumpsum();
+    });
+
+    $(document).on('input','.alloc-amt',function(){
+      const id=Number($(this).data('id'));
+      const inv=invoices.find(x=>x.id===id);
+      if(!inv) return;
+      const val=Math.min(Number(this.value||0),Number(inv.balance));
+      const existing=selectedAllocations.find(a=>a.invoice_id===id);
+      if(existing) existing.amount=val;
+      else selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:val});
+      recalcLumpsum();
+    });
+
+    function recalcLumpsum(){
+      const totalAmt=Number($('#lumpsumAmount').val()||0);
+      const totalAlloc=selectedAllocations.reduce((s,a)=>s+a.amount,0);
+      const surplus=Math.max(0,totalAmt-totalAlloc);
+      $('#surplusAmt').text(money(surplus));
+      $('#totalPayDisplay').text(money(totalAmt));
+      updateSubmitState();
+    }
+
+    function bindAllocEvents(){
+      $(document).off('change','.alloc-cb').off('input','.alloc-amt');
+      $(document).on('change','.alloc-cb',function(){
+        const id=Number($(this).data('id'));
+        const inv=invoices.find(x=>x.id===id);
+        if(!inv) return;
+        const amtInput=$(`.alloc-amt[data-id="${id}"]`);
+        if(this.checked){
+          amtInput.prop('disabled',false).val(inv.balance).focus();
+          selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:Number(inv.balance)});
+        } else {
+          amtInput.prop('disabled',true).val(0);
+          selectedAllocations=selectedAllocations.filter(a=>a.invoice_id!==id);
+        }
+        recalcLumpsum();
+      });
+      $(document).on('input','.alloc-amt',function(){
+        const id=Number($(this).data('id'));
+        const inv=invoices.find(x=>x.id===id);
+        if(!inv) return;
+        const val=Math.min(Number(this.value||0),Number(inv.balance));
+        const existing=selectedAllocations.find(a=>a.invoice_id===id);
+        if(existing) existing.amount=val;
+        else selectedAllocations.push({invoice_id:inv.id,invoice_no:inv.ref_no,amount:val});
+        recalcLumpsum();
+      });
+    }
+
+    function updateSubmitState(){
+      const hasSupplier=Number($('#supplierSelect').val()||0)>0;
+      let hasAmount=false;
+      if(paymentType==='partial'){
+        hasAmount=Number($('#partialAmount').val()||0)>0;
+      } else {
+        hasAmount=selectedAllocations.some(a=>a.amount>0)&&Number($('#lumpsumAmount').val()||0)>0;
+      }
+      $('#submitPayment').prop('disabled',!(hasSupplier&&hasAmount));
+    }
+
+    $('#submitPayment').on('click', function(){
+      const btn=$(this);
+      const supplierId=Number($('#supplierSelect').val()||0);
+      if(!supplierId) return iziToast.error({title:'Error',message:'Select a supplier',position:'bottomRight'});
+
+      let amount=0, allocations=[];
+      if(paymentType==='partial'){
+        const inv=invoices.find(x=>String(x.id)===$('#invoiceSelect').val());
+        if(!inv) return iziToast.error({title:'Error',message:'Select an invoice',position:'bottomRight'});
+        amount=Number($('#partialAmount').val()||0);
+        if(amount<=0) return iziToast.error({title:'Error',message:'Enter a valid amount',position:'bottomRight'});
+        if(amount>Number(inv.balance)) return iziToast.error({title:'Error',message:'Amount exceeds invoice balance',position:'bottomRight'});
+        allocations=[{invoice_id:inv.id,invoice_no:inv.ref_no,amount:amount}];
+      } else {
+        amount=Number($('#lumpsumAmount').val()||0);
+        if(amount<=0) return iziToast.error({title:'Error',message:'Enter the payment amount',position:'bottomRight'});
+        const validAllocs=selectedAllocations.filter(a=>a.amount>0);
+        if(!validAllocs.length) return iziToast.error({title:'Error',message:'Select at least one invoice',position:'bottomRight'});
+        allocations=validAllocs;
+      }
+
+      btn.prop('disabled',true).html('<span class="spinner-border spinner-border-sm me-1"></span>Processing...');
+      api.post('/api/payments',{
+        supplier_id:supplierId, amount:amount,
+        mode:$('input[name="payMode"]:checked').val(),
+        transaction_date:$('#txDate').val(),
+        reference_no:$('#referenceNo').val(),
+        bank_name:$('#bankName').val(),
+        notes:$('#txNotes').val(),
+        allocations:allocations,
+      }).then(r=>{
+        iziToast.success({title:`Payment ${r.transaction_no} created`,position:'bottomRight'});
+        window.location.href=baseUrl+'/api/payments/'+r.id+'/pdf?download';
+        setTimeout(()=>location.href=baseUrl+'/payments',1500);
+      }).catch(()=>{
+        btn.prop('disabled',false).html('<i class="bi bi-check-lg me-1"></i>Submit Payment');
+      });
+    });
+  }
+
+  // ---- Reconciliation ----
+  function reconciliationReceipts(){
+    let allData = [], filtered = [];
+    const $rows = $('#rows');
+    const unique = (arr, key) => [...new Set(arr.map(r => r[key]).filter(Boolean))].sort();
+
+    const buildOptions = (sel, values) => {
+      const $el = $(sel), cur = $el.val();
+      $el.find('option:gt(0)').remove();
+      values.forEach(v => $el.append(`<option value="${esc(v)}">${esc(v)}</option>`));
+      if (cur && values.includes(cur)) $el.val(cur);
+    };
+
+    const applyFilters = () => {
+      const cust = $('#fCustomer').val();
+      const rno  = $('#fReceiptNo').val();
+      const inv  = ($('#fInvNo').val()||'').toLowerCase();
+      const ref  = ($('#fRefNo').val()||'').toLowerCase();
+      filtered = allData.filter(r => {
+        if (cust && r.party_name !== cust) return false;
+        if (rno && r.transaction_no !== rno) return false;
+        if (inv && !(r.allocations||[]).some(a => (a.invoice_no||'').toLowerCase().includes(inv))) return false;
+        if (ref && !(r.reference_no||'').toLowerCase().includes(ref)) return false;
+        return true;
+      });
+      render();
+    };
+
+    const render = () => {
+      if (!filtered.length) { $rows.html('<tr><td colspan="7" class="text-center text-muted py-3">No pending receipts found.</td></tr>'); return; }
+      $rows.html(filtered.map(r => {
+        const modeLabel = {cash:'Cash',cheque:'Cheque',upi:'UPI',transfer:'Transfer'}[r.mode]||r.mode;
+        return `<tr>
+          <td class="text-num small fw-semibold">${esc(r.transaction_no)}</td>
+          <td>${esc(r.party_name)}</td>
+          <td class="small text-muted">${r.transaction_date}</td>
+          <td class="text-end text-num">${money(r.amount)}</td>
+          <td>${modeLabel}</td>
+          <td class="small text-muted">${esc(r.reference_no||'—')}</td>
+          <td class="text-end"><button class="btn btn-sm sf-btn-primary settle-btn" data-id="${r.id}" data-no="${esc(r.transaction_no)}">Settle</button></td>
+        </tr>`;
+      }).join(''));
+      $('.settle-btn').on('click', function(){
+        const id=$(this).data('id'), no=$(this).data('no');
+        confirmAction(`Settle receipt ${no}?`, ()=>{
+          api.post('/api/reconciliation/'+id+'/settle').then(()=>{
+            iziToast.success({title:`${no} settled`,position:'bottomRight'});
+            load();
+          });
+        });
+      });
+    };
+
+    const load = () => {
+      api.get('/api/reconciliation/receipts').then(rows => {
+        allData = rows || [];
+        buildOptions('#fCustomer', unique(allData, 'party_name'));
+        buildOptions('#fReceiptNo', unique(allData, 'transaction_no'));
+        applyFilters();
+      });
+    };
+
+    $('#fCustomer, #fReceiptNo').on('change', applyFilters);
+    $('#fInvNo, #fRefNo').on('input', applyFilters);
+    $('#fClear').on('click', () => {
+      $('#fCustomer, #fReceiptNo').val('');
+      $('#fInvNo, #fRefNo').val('');
+      applyFilters();
+    });
+    load();
+  }
+
+  function reconciliationPayments(){
+    let allData = [], filtered = [];
+    const $rows = $('#rows');
+    const unique = (arr, key) => [...new Set(arr.map(r => r[key]).filter(Boolean))].sort();
+
+    const buildOptions = (sel, values) => {
+      const $el = $(sel), cur = $el.val();
+      $el.find('option:gt(0)').remove();
+      values.forEach(v => $el.append(`<option value="${esc(v)}">${esc(v)}</option>`));
+      if (cur && values.includes(cur)) $el.val(cur);
+    };
+
+    const applyFilters = () => {
+      const supp  = $('#fSupplier').val();
+      const pno   = $('#fPaymentNo').val();
+      const sInv  = ($('#fSupplierInv').val()||'').toLowerCase();
+      const pInv  = ($('#fPurchaseInv').val()||'').toLowerCase();
+      const ref   = ($('#fRefNo').val()||'').toLowerCase();
+      const amt   = ($('#fAmount').val()||'').trim();
+      filtered = allData.filter(r => {
+        if (supp && r.party_name !== supp) return false;
+        if (pno && r.transaction_no !== pno) return false;
+        if (ref && !(r.reference_no||'').toLowerCase().includes(ref)) return false;
+        if (amt && !money(r.amount).includes(amt)) return false;
+        if (sInv || pInv) {
+          const allocs = r.allocations || [];
+          const match = allocs.some(a => {
+            if (sInv && (a.supplier_inv_no||'').toLowerCase().includes(sInv)) return true;
+            if (pInv && (a.invoice_no||'').toLowerCase().includes(pInv)) return true;
+            return false;
+          });
+          if (!match) return false;
+        }
+        return true;
+      });
+      render();
+    };
+
+    const render = () => {
+      if (!filtered.length) { $rows.html('<tr><td colspan="7" class="text-center text-muted py-3">No pending payments found.</td></tr>'); return; }
+      $rows.html(filtered.map(r => {
+        const modeLabel = {cash:'Cash',cheque:'Cheque',upi:'UPI',transfer:'Transfer'}[r.mode]||r.mode;
+        return `<tr>
+          <td class="text-num small fw-semibold">${esc(r.transaction_no)}</td>
+          <td>${esc(r.party_name)}</td>
+          <td class="small text-muted">${r.transaction_date}</td>
+          <td class="text-end text-num">${money(r.amount)}</td>
+          <td>${modeLabel}</td>
+          <td class="small text-muted">${esc(r.reference_no||'—')}</td>
+          <td class="text-end"><button class="btn btn-sm sf-btn-primary settle-btn" data-id="${r.id}" data-no="${esc(r.transaction_no)}">Settle</button></td>
+        </tr>`;
+      }).join(''));
+      $('.settle-btn').on('click', function(){
+        const id=$(this).data('id'), no=$(this).data('no');
+        confirmAction(`Settle payment ${no}?`, ()=>{
+          api.post('/api/reconciliation/'+id+'/settle').then(()=>{
+            iziToast.success({title:`${no} settled`,position:'bottomRight'});
+            load();
+          });
+        });
+      });
+    };
+
+    const load = () => {
+      api.get('/api/reconciliation/payments').then(rows => {
+        allData = rows || [];
+        buildOptions('#fSupplier', unique(allData, 'party_name'));
+        buildOptions('#fPaymentNo', unique(allData, 'transaction_no'));
+        applyFilters();
+      });
+    };
+
+    $('#fSupplier, #fPaymentNo').on('change', applyFilters);
+    $('#fSupplierInv, #fPurchaseInv, #fRefNo, #fAmount').on('input', applyFilters);
+    $('#fClear').on('click', () => {
+      $('#fSupplier, #fPaymentNo').val('');
+      $('#fSupplierInv, #fPurchaseInv, #fRefNo, #fAmount').val('');
+      applyFilters();
+    });
+    load();
+  }
+
+  return { dashboard, products, party, sales, saleNew, saleView, saleEdit, purchases, reports, users, companySettings, taxtypes, invoiceTemplates, receipts, receiptNew, payments, paymentNew, reconciliationReceipts, reconciliationPayments };
 })();

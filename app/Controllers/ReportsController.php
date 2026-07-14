@@ -17,7 +17,7 @@ final class ReportsController extends Controller {
     }
     public function invoiceAging(Request $r): void {
         Auth::user();
-        $rows = Database::pdo()->query("SELECT invoice_no, customer_name AS customer, sale_date AS date, DATEDIFF(CURDATE(), sale_date) AS days_overdue, total, balance FROM sales WHERE balance > 0 ORDER BY days_overdue DESC")->fetchAll();
+        $rows = Database::pdo()->query("SELECT invoice_no, customer_name AS customer, sale_date AS date, DATEDIFF(CURDATE(), sale_date) AS days_overdue, total, COALESCE(balance, total) AS balance FROM sales WHERE COALESCE(balance, total) > 0 ORDER BY days_overdue DESC")->fetchAll();
         $buckets = ['0-30'=>0.0,'31-60'=>0.0,'61-90'=>0.0,'90+'=>0.0];
         foreach ($rows as &$r2) {
             $d = (int)$r2['days_overdue'];

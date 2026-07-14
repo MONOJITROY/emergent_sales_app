@@ -56,6 +56,8 @@ final class App
             $uri = $reqUri;
         }
         if ($uri === '') $uri = '/';
+        // Strip trailing slash (except root)
+        if ($uri !== '/' && str_ends_with($uri, '/')) $uri = rtrim($uri, '/');
 
         // Base URL for navigation/assets — if no rewrite, route everything through index.php so PATH_INFO is used.
         if (empty(self::$config['base_url'])) {
@@ -115,7 +117,6 @@ final class App
         $r->get('/api/sales',              ['App\\Controllers\\SalesController', 'apiList']);
         $r->get('/api/sales/{id}',         ['App\\Controllers\\SalesController', 'apiGet']);
         $r->post('/api/sales',             ['App\\Controllers\\SalesController', 'apiCreate']);
-        $r->post('/api/sales/{id}/payment',['App\\Controllers\\SalesController', 'apiPayment']);
         $r->delete('/api/sales/{id}',      ['App\\Controllers\\SalesController', 'apiDelete']);
 
         $r->get('/api/purchases',     ['App\\Controllers\\PurchasesController', 'apiList']);
@@ -145,6 +146,31 @@ final class App
         $r->get('/api/exports/invoice/{id}.pdf',     ['App\\Controllers\\ExportController', 'invoicePdf']);
         $r->post('/api/sales/{id}/email',            ['App\\Controllers\\ExportController', 'emailInvoice']);
         $r->get('/api/invoice/{id}/render',          ['App\\Controllers\\ExportController', 'renderInvoice']);
+
+        // Receipts
+        $r->get('/receipts',                              ['App\\Controllers\\ReceiptsController', 'index']);
+        $r->get('/receipts/new',                          ['App\\Controllers\\ReceiptsController', 'create']);
+        $r->get('/api/receipts',                          ['App\\Controllers\\ReceiptsController', 'apiList']);
+        $r->get('/api/receipts/{id}',                     ['App\\Controllers\\ReceiptsController', 'apiGet']);
+        $r->post('/api/receipts',                         ['App\\Controllers\\ReceiptsController', 'apiCreate']);
+        $r->get('/api/receipts/{id}/pdf',                 ['App\\Controllers\\ReceiptsController', 'apiPdf']);
+        $r->get('/api/customers/{id}/pending-invoices',   ['App\\Controllers\\ReceiptsController', 'apiPendingInvoices']);
+
+        // Payments
+        $r->get('/payments',                              ['App\\Controllers\\PaymentsController', 'index']);
+        $r->get('/payments/new',                          ['App\\Controllers\\PaymentsController', 'create']);
+        $r->get('/api/payments',                          ['App\\Controllers\\PaymentsController', 'apiList']);
+        $r->get('/api/payments/{id}',                     ['App\\Controllers\\PaymentsController', 'apiGet']);
+        $r->post('/api/payments',                         ['App\\Controllers\\PaymentsController', 'apiCreate']);
+        $r->get('/api/payments/{id}/pdf',                 ['App\\Controllers\\PaymentsController', 'apiPdf']);
+        $r->get('/api/suppliers/{id}/pending-invoices',   ['App\\Controllers\\PaymentsController', 'apiPendingInvoices']);
+
+        // Reconciliation
+        $r->get('/reconciliation/receipts',               ['App\\Controllers\\ReconciliationController', 'receiptIndex']);
+        $r->get('/reconciliation/payments',               ['App\\Controllers\\ReconciliationController', 'paymentIndex']);
+        $r->get('/api/reconciliation/receipts',            ['App\\Controllers\\ReconciliationController', 'apiReceiptList']);
+        $r->get('/api/reconciliation/payments',            ['App\\Controllers\\ReconciliationController', 'apiPaymentList']);
+        $r->post('/api/reconciliation/{id}/settle',        ['App\\Controllers\\ReconciliationController', 'apiSettle']);
 
         // Edit sale
         $r->put('/api/sales/{id}',                   ['App\\Controllers\\SalesController', 'apiUpdate']);

@@ -27,6 +27,10 @@
           ['_group', 'Operations', 'bi-arrow-left-right', [
             ['sales', 'sales', 'bi-receipt', 'Sales'],
             ['purchases', 'purchases', 'bi-cart-plus', 'Purchases'],
+            ['receipts', 'receipts', 'bi-cash-stack', 'Receipts'],
+            ['payments', 'payments', 'bi-credit-card', 'Payments'],
+            ['reconciliation-receipts', 'reconciliation/receipts', 'bi-check2-circle', 'Reconcile Receipts'],
+            ['reconciliation-payments', 'reconciliation/payments', 'bi-check2-circle', 'Reconcile Payments'],
           ]],
           ['_group', 'Reports', 'bi-bar-chart-line', [
             ['reports', 'reports', 'bi-bar-chart-line', 'Sales Reports'],

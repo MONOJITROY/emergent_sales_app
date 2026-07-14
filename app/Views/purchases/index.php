@@ -9,8 +9,8 @@
   </div>
 </div>
 <div class="card sf-card"><div class="table-responsive"><table class="table table-sm align-middle sf-table mb-0">
-  <thead><tr><th>Ref</th><th>Supplier</th><th>Date</th><th>Items</th><th class="text-end">Subtotal</th><th class="text-end">Tax</th><th class="text-end">Total</th><th class="text-end">Actions</th></tr></thead>
-  <tbody id="rows"><tr><td colspan="8" class="text-center text-muted py-3">Loading…</td></tr></tbody>
+  <thead><tr><th>Ref</th><th>Supplier</th><th>Date</th><th>Items</th><th class="text-end">Total</th><th class="text-end">Paid</th><th class="text-end">Balance</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+  <tbody id="rows"><tr><td colspan="9" class="text-center text-muted py-3">Loading…</td></tr></tbody>
 </table></div></div>
 
 <div class="modal fade" id="purchaseModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content">

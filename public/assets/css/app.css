@@ -181,3 +181,13 @@ span.healthystock {
 .numberinput{
   padding: .25rem .1rem .25rem .5rem;
 }
+.sf-status-reconciled{background:#ecfdf5;color:#047857;border-color:#a7f3d0;}
+
+.sf-filter-bar{background:#f8fafc;border:1px solid var(--sf-border);border-radius:.375rem;padding:.6rem .75rem;}
+.sf-filter-bar .form-label{margin-bottom:.15rem;color:var(--sf-muted);font-weight:500;}
+.sf-filter-bar .form-control-sm,.sf-filter-bar .form-select-sm{font-size:.8rem;height:1.8rem;}
+.sf-filter-bar .row{gap:.35rem!important;}
+.sf-status-pending{background:#fffbeb;color:#b45309;border-color:#fcd34d;}
+label.form-check-label.text-sm {
+  font-size: 0.75rem;
+}

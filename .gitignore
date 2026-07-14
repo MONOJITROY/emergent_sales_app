@@ -88,6 +88,12 @@ credentials.json
 *.key
 .credentials
 sql/schema.sql
+sql/migrations/
+*.sql
+
+# Generated PDFs
+public/receipts/*.pdf
+public/payments/*.pdf
 composer.json
 composer.lock
 composer.json

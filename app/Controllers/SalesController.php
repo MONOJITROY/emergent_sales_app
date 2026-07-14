@@ -126,22 +126,6 @@ final class SalesController extends Controller {
         }
     }
 
-    public function apiPayment(Request $r): void {
-        Auth::user(); $this->requireCsrf();
-        $id = (int)$r->param('id'); $amount = (float)$r->input('amount', 0);
-        if ($amount <= 0) { $this->json(['ok'=>false,'error'=>'Amount must be positive'], 400); return; }
-        $sale = Sale::find($id); if (!$sale) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
-        $newPaid = min((float)$sale['total'], (float)$sale['paid'] + $amount);
-        $newBalance = round((float)$sale['total'] - $newPaid, 2);
-        $newStatus = $newBalance <= 0 ? 'paid' : ($newPaid > 0 ? 'partial' : 'unpaid');
-        $delta = $newPaid - (float)$sale['paid'];
-        Sale::update($id, ['paid'=>$newPaid, 'balance'=>$newBalance, 'status'=>$newStatus]);
-        if (!empty($sale['customer_id']) && $delta > 0) {
-            Database::pdo()->prepare('UPDATE customers SET balance = balance - ? WHERE id = ?')->execute([$delta, (int)$sale['customer_id']]);
-        }
-        $this->json(Sale::withItems($id));
-    }
-
     public function apiDelete(Request $r): void {
         Auth::user(); $this->requireCsrf();
         $id = (int)$r->param('id'); $sale = Sale::withItems($id);
