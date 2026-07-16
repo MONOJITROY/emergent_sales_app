@@ -75,35 +75,169 @@
       </div>
     </div>
   </div>
-  <div class="table-responsive"><table class="table table-sm sf-table">
-    <thead><tr><th>SKU</th><th>Item</th><th class="text-end">Qty</th><th class="text-end">Price</th><th class="text-end">Total</th></tr></thead>
-    <tbody><?php foreach ($sale['items'] as $it): ?>
-      <tr><td class="text-num small"><?= View::e($it['sku']) ?></td><td><?= View::e($it['name']) ?></td>
-        <td class="text-end text-num"><?= View::e($it['qty']) ?></td>
-        <td class="text-end text-num"><?= number_format((float)$it['price'],2) ?></td>
-        <td class="text-end text-num"><?= number_format((float)$it['total'],2) ?></td></tr>
-    <?php endforeach; ?></tbody>
-  </table></div>
-  <div class="d-flex justify-content-end">
-    <div style="min-width:260px">
-      <div class="d-flex justify-content-between small">
-        <span class="text-muted">Subtotal</span><span class="text-num"><?= number_format((float)$sale['subtotal'],2) ?></span>
+  <div class="table-responsive">
+    <table class="table table-sm sf-table">
+      <thead>
+        <tr>
+          <th style="width:50%;">Item</th>
+          <th style="width:12%;">SKU</th>
+          <th style="width:5%;" class="text-end">Qty</th>
+          <th style="width:3%;" class="text-end">Unit</th>
+          <th style="width:13%;" class="text-end">Price</th>
+          <th style="width:17%;" class="text-end">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php foreach ($sale['items'] as $it): ?>
+        <tr>
+          <td><?= View::e($it['name']) ?></td>
+          <td class="text-num small"><?= View::e($it['sku']) ?></td>
+          <td class="text-end text-num"><?= View::e($it['qty']) ?></td>
+          <td class="text-end text-num"><?= View::e($it['unit']) ?></td>
+          <td class="text-end text-num"><?= number_format((float)$it['price'],2) ?></td>
+          <td class="text-end text-num"><?= number_format((float)$it['total'],2) ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  </div>
+  <?php
+    $taxGroups = [];
+    foreach ($sale['items'] as $it) {
+        $rate = (float)($it['tax_pct'] ?? 0);
+        if ($rate <= 0) continue;
+        $hsn = $it['hsn'] ?: '—';
+        $tduty = $it['typeofduty'] ?? 'GST';
+        $key = $hsn . '|' . $rate . '|' . $tduty;
+        if (!isset($taxGroups[$key])) {
+            $taxGroups[$key] = ['hsn'=>$hsn, 'rate'=>$rate, 'typeofduty'=>$tduty, 'taxableValue'=>0.0, 'taxAmount'=>0.0];
+        }
+        $taxGroups[$key]['taxableValue'] += (float)$it['total'];
+        $taxGroups[$key]['taxAmount'] += (float)$it['total'] * $rate / 100;
+    }
+    $hasTax = count($taxGroups) > 0;
+  ?>
+  <div class="taxbreakupandtotal row mt-3">
+    <!-- Left column: Tax Breakup + Bank Details -->
+    <div class="col-md-7">
+      <?php if ($hasTax): ?>
+      <div class="mb-3">
+        <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.6rem;letter-spacing:.06em">Tax Breakup</div>
+        <div class="table-responsive tbl_taxbreakup">
+          <table class="table table-sm table-bordered mb-0 sf-tax-table">
+            <thead>
+              <tr>
+                <th rowspan="2">HSN/SAC</th>
+                <th class="text-end" rowspan="2">Taxable Value</th>
+                <th class="text-center" colspan="2">CGST</th>
+                <th class="text-center" colspan="2">SGST / UTGST</th>
+                <th class="text-end" rowspan="2">Total</th>
+              </tr>
+              <tr>
+                <th class="text-end fw-normal">Rate(%)</th>
+                <th class="text-end fw-normal">Amount</th>
+                <th class="text-end fw-normal">Rate(%)</th>
+                <th class="text-end fw-normal">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php $tTax=0; $tCg=0; $tSg=0; $tTx=0; ?>
+              <?php foreach ($taxGroups as $g): ?>
+                <?php
+                  $isGst = $g['typeofduty'] === 'GST';
+                  $half = $isGst ? $g['rate']/2 : $g['rate'];
+                  $cg = $g['taxableValue'] * $half / 100;
+                  $sg = $isGst ? $cg : 0;
+                  $tTax += $g['taxableValue'];
+                  $tCg += $cg;
+                  $tSg += $sg;
+                  $tTx += $g['taxAmount'];
+                ?>
+                <tr>
+                  <td><?= View::e($g['hsn']) ?></td>
+                  <td class="text-end text-num"><?= number_format($g['taxableValue'],2) ?></td>
+                  <td class="text-end text-num"><?= $half ?>%</td>
+                  <td class="text-end text-num"><?= number_format($cg,2) ?></td>
+                  <td class="text-end text-num"><?= $isGst ? $half.'%' : '—' ?></td>
+                  <td class="text-end text-num"><?= number_format($sg,2) ?></td>
+                  <td class="text-end text-num fw-semibold"><?= number_format($g['taxAmount'],2) ?></td>
+                </tr>
+              <?php endforeach; ?>
+              <tr class="fw-bold">
+                <td>Total</td>
+                <td class="text-end text-num"><?= number_format($tTax,2) ?></td>
+                <td></td>
+                <td class="text-end text-num"><?= number_format($tCg,2) ?></td>
+                <td></td>
+                <td class="text-end text-num"><?= number_format($tSg,2) ?></td>
+                <td class="text-end text-num"><?= number_format($tTx,2) ?></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="d-flex justify-content-between small">
-        <span class="text-muted">Discount</span><span class="text-num">-<?= number_format((float)$sale['discount'],2) ?></span>
+      <?php endif; ?>
+
+      <?php if (!empty($company['bank_name'])): ?>
+      <div>
+        <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Bank Details</div>
+        <div class="small" style="line-height:1.8">
+          <div><strong>Bank:</strong> <?= View::e($company['bank_name']) ?></div>
+          <div><strong>A/C No:</strong> <?= View::e($company['bank_account_no']) ?></div>
+          <div><strong>IFSC:</strong> <?= View::e($company['bank_ifsc_code']) ?></div>
+          <div><strong>Branch:</strong> <?= View::e($company['bank_branch_name']) ?></div>
+          <div><strong>A/C Holder:</strong> <?= View::e($company['bank_account_holder_name']) ?></div>
+        </div>
       </div>
-      <div class="d-flex justify-content-between small">
-        <span class="text-muted">Tax</span><span class="text-num">+<?= number_format((float)$sale['tax'],2) ?></span>
+      <?php endif; ?>
+    </div>
+
+    <!-- Right column: Amount Summary + Authorised Signatory -->
+    <div class="col-md-5">
+      <div>
+        <div class="d-flex justify-content-between small">
+          <span class="text-muted">Subtotal</span>
+          <span class="text-num"><?= number_format((float)$sale['subtotal'],2) ?></span>
+        </div>
+        <?php if ((float)$sale['discount'] > 0): ?>
+        <div class="d-flex justify-content-between small">
+          <span class="text-muted">Discount</span>
+          <span class="text-num">-<?= number_format((float)$sale['discount'],2) ?></span>
+        </div>
+        <?php endif; ?>
+        <div class="d-flex justify-content-between small">
+          <span class="text-muted">Tax</span>
+          <span class="text-num"><!-- + --><?= number_format((float)$sale['tax'],2) ?></span>
+        </div>
+        <?php if (!empty($sale['roundoff']) && (float)$sale['roundoff'] != 0): ?>
+        <div class="d-flex justify-content-between small">
+          <span class="text-muted">Round Off</span>
+          <span class="text-num"><?= (float)$sale['roundoff'] >= 0 ? '' : '-' ?><?= number_format((float)$sale['roundoff'],2) ?></span>
+        </div>
+        <?php endif; ?>
+        <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1">
+          <span>Total</span>
+          <span class="text-num"><?= number_format((float)$sale['total'],2) ?></span>
+        </div>
+        <div class="d-flex justify-content-between small text-muted">
+          <span>Paid</span>
+          <span class="text-num"><?= number_format((float)$sale['paid'],2) ?></span>
+        </div>
+        <div class="d-flex justify-content-between fw-bold text-orange">
+          <span>Balance</span>
+          <span class="text-num"><?= number_format((float)$sale['balance'],2) ?></span>
+        </div>
       </div>
-      <div class="d-flex justify-content-between fw-bold border-top mt-1 pt-1">
-        <span>Total</span><span class="text-num"><?= number_format((float)$sale['total'],2) ?></span>
+
+      <?php if (!empty($company['owner_name'])): ?>
+      <div class="mt-4 text-end">
+        <div class="text-uppercase small text-secondary fw-semibold mb-1" style="font-size:.7rem;letter-spacing:.06em">Authorised Signatory</div>
+        <div style="margin-top:40px;border-top:1px solid #dee2e6;width:200px;display:inline-block;padding-top:6px">
+          <div class="small fw-semibold"><?= View::e($company['owner_name']) ?></div>
+          <div class="small text-muted"><?= View::e($company['company_name']) ?></div>
+        </div>
       </div>
-      <div class="d-flex justify-content-between small text-muted">
-        <span>Paid</span><span class="text-num"><?= number_format((float)$sale['paid'],2) ?></span>
-      </div>
-      <div class="d-flex justify-content-between fw-bold text-orange">
-        <span>Balance</span><span class="text-num"><?= number_format((float)$sale['balance'],2) ?></span>
-      </div>
+      <?php endif; ?>
     </div>
   </div>
   <?php if (!empty($sale['notes'])): ?>

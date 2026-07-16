@@ -94,6 +94,7 @@ h1,h2,h3,h4,h5,.h1,.h2,.h3,.h4,.h5{font-family:'Chivo',system-ui,sans-serif;lett
   .sf-sidebar.show{transform:none;}
 }
 
+@page { margin: 0.6in; } 
 @media print{
   .no-print{display:none!important;} body{background:#fff;}
   .sf-sidebar,.sf-topbar{display:none!important;}
@@ -197,3 +198,6 @@ label.form-check-label.text-sm {
 .company-name{font-size:1.2rem;font-weight:600;margin-top:.25rem;}
 .flex-direction-column{flex-direction:column !important;}
 .align-items-flexstart{align-items:flex-start !important;}
+.tbl_taxbreakup th, .tbl_taxbreakup td {
+  font-size: .6rem;
+}

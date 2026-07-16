@@ -246,6 +246,159 @@ CREATE TABLE `transaction_allocations` (
   CONSTRAINT `transaction_allocations_ibfk_1` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
+-- ─── Credit Notes ─────────────────────────────────────────────────────
+CREATE TABLE `credit_notes` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `cn_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `sale_id` int UNSIGNED NULL DEFAULT NULL,
+  `customer_id` int UNSIGNED NULL DEFAULT NULL,
+  `customer_name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `cn_date` date NOT NULL,
+  `reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `subtotal` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `total` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `status` enum('open','closed') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'open',
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `created_by` int UNSIGNED NULL DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `cn_no`(`cn_no` ASC) USING BTREE,
+  INDEX `credit_notes_sale_id`(`sale_id` ASC) USING BTREE,
+  INDEX `credit_notes_customer_id`(`customer_id` ASC) USING BTREE,
+  CONSTRAINT `credit_notes_ibfk_sale` FOREIGN KEY (`sale_id`) REFERENCES `sales` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `credit_notes_ibfk_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+CREATE TABLE `credit_note_items` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `credit_note_id` int UNSIGNED NOT NULL,
+  `product_id` int UNSIGNED NOT NULL,
+  `sku` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `qty` decimal(12, 2) NOT NULL,
+  `price` decimal(12, 2) NOT NULL,
+  `total` decimal(12, 2) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `credit_note_items_cnid`(`credit_note_id` ASC) USING BTREE,
+  INDEX `credit_note_items_pid`(`product_id` ASC) USING BTREE,
+  CONSTRAINT `credit_note_items_ibfk_cn` FOREIGN KEY (`credit_note_id`) REFERENCES `credit_notes` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `credit_note_items_ibfk_prod` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ─── Debit Notes ──────────────────────────────────────────────────────
+CREATE TABLE `debit_notes` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `dn_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `purchase_id` int UNSIGNED NULL DEFAULT NULL,
+  `supplier_id` int UNSIGNED NULL DEFAULT NULL,
+  `supplier_name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `dn_date` date NOT NULL,
+  `reason` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `subtotal` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `total` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `status` enum('open','closed') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'open',
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `created_by` int UNSIGNED NULL DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `dn_no`(`dn_no` ASC) USING BTREE,
+  INDEX `debit_notes_purchase_id`(`purchase_id` ASC) USING BTREE,
+  INDEX `debit_notes_supplier_id`(`supplier_id` ASC) USING BTREE,
+  CONSTRAINT `debit_notes_ibfk_purchase` FOREIGN KEY (`purchase_id`) REFERENCES `purchases` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `debit_notes_ibfk_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+CREATE TABLE `debit_note_items` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `debit_note_id` int UNSIGNED NOT NULL,
+  `product_id` int UNSIGNED NOT NULL,
+  `sku` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `qty` decimal(12, 2) NOT NULL,
+  `price` decimal(12, 2) NOT NULL,
+  `total` decimal(12, 2) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `debit_note_items_dnid`(`debit_note_id` ASC) USING BTREE,
+  INDEX `debit_note_items_pid`(`product_id` ASC) USING BTREE,
+  CONSTRAINT `debit_note_items_ibfk_dn` FOREIGN KEY (`debit_note_id`) REFERENCES `debit_notes` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `debit_note_items_ibfk_prod` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ─── Quotations ───────────────────────────────────────────────────────
+CREATE TABLE `quotations` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `quote_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `customer_id` int UNSIGNED NULL DEFAULT NULL,
+  `customer_name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `quote_date` date NOT NULL,
+  `valid_until` date NULL DEFAULT NULL,
+  `subtotal` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `tax` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `total` decimal(12, 2) NOT NULL DEFAULT 0.00,
+  `status` enum('draft','sent','accepted','rejected') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'draft',
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `created_by` int UNSIGNED NULL DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `quote_no`(`quote_no` ASC) USING BTREE,
+  INDEX `quotations_customer_id`(`customer_id` ASC) USING BTREE,
+  CONSTRAINT `quotations_ibfk_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+CREATE TABLE `quotation_items` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `quotation_id` int UNSIGNED NOT NULL,
+  `product_id` int UNSIGNED NOT NULL,
+  `sku` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `qty` decimal(12, 2) NOT NULL,
+  `price` decimal(12, 2) NOT NULL,
+  `total` decimal(12, 2) NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `quotation_items_qid`(`quotation_id` ASC) USING BTREE,
+  INDEX `quotation_items_pid`(`product_id` ASC) USING BTREE,
+  CONSTRAINT `quotation_items_ibfk_q` FOREIGN KEY (`quotation_id`) REFERENCES `quotations` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `quotation_items_ibfk_prod` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ─── Delivery Challans ────────────────────────────────────────────────
+CREATE TABLE `delivery_challans` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `dc_no` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `sale_id` int UNSIGNED NULL DEFAULT NULL,
+  `customer_id` int UNSIGNED NULL DEFAULT NULL,
+  `customer_name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `dc_date` date NOT NULL,
+  `vehicle_no` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `driver_name` varchar(120) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `notes` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `created_by` int UNSIGNED NULL DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `dc_no`(`dc_no` ASC) USING BTREE,
+  INDEX `delivery_challans_sale_id`(`sale_id` ASC) USING BTREE,
+  INDEX `delivery_challans_customer_id`(`customer_id` ASC) USING BTREE,
+  CONSTRAINT `delivery_challans_ibfk_sale` FOREIGN KEY (`sale_id`) REFERENCES `sales` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT,
+  CONSTRAINT `delivery_challans_ibfk_customer` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+CREATE TABLE `delivery_challan_items` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `challan_id` int UNSIGNED NOT NULL,
+  `product_id` int UNSIGNED NOT NULL,
+  `sku` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name` varchar(190) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `qty` decimal(12, 2) NOT NULL,
+  `unit` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT 'pcs',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `delivery_challan_items_dcid`(`challan_id` ASC) USING BTREE,
+  INDEX `delivery_challan_items_pid`(`product_id` ASC) USING BTREE,
+  CONSTRAINT `delivery_challan_items_ibfk_dc` FOREIGN KEY (`challan_id`) REFERENCES `delivery_challans` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT `delivery_challan_items_ibfk_prod` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
 -- Seed admin (password: admin123)
 -- Hash generated with: password_hash('admin123', PASSWORD_BCRYPT)
 INSERT INTO users (email, password_hash, name, role)

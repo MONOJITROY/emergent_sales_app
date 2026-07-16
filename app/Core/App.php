@@ -156,10 +156,15 @@ final class App
         $r->get('/api/reports/invoice-ageing',    ['App\\Controllers\\ReportsController', 'apiInvoiceAgeing']);
 
         // Exports & email
-        $r->get('/api/exports/sales.xlsx',           ['App\\Controllers\\ExportController', 'salesXlsx']);
-        $r->get('/api/exports/invoice/{id}.pdf',     ['App\\Controllers\\ExportController', 'invoicePdf']);
-        $r->post('/api/sales/{id}/email',            ['App\\Controllers\\ExportController', 'emailInvoice']);
-        $r->get('/api/invoice/{id}/render',          ['App\\Controllers\\ExportController', 'renderInvoice']);
+        $r->get('/api/exports/sales.xlsx',               ['App\\Controllers\\ExportController', 'salesXlsx']);
+        $r->get('/api/exports/invoice/{id}.pdf',         ['App\\Controllers\\ExportController', 'invoicePdf']);
+        $r->get('/api/exports/purchase-order/{id}.pdf',  ['App\\Controllers\\ExportController', 'purchaseOrderPdf']);
+        $r->get('/api/exports/credit-note/{id}.pdf',     ['App\\Controllers\\ExportController', 'creditNotePdf']);
+        $r->get('/api/exports/debit-note/{id}.pdf',      ['App\\Controllers\\ExportController', 'debitNotePdf']);
+        $r->get('/api/exports/quotation/{id}.pdf',       ['App\\Controllers\\ExportController', 'quotationPdf']);
+        $r->get('/api/exports/delivery-challan/{id}.pdf',['App\\Controllers\\ExportController', 'deliveryChallanPdf']);
+        $r->post('/api/sales/{id}/email',                ['App\\Controllers\\ExportController', 'emailInvoice']);
+        $r->get('/api/invoice/{id}/render',              ['App\\Controllers\\ExportController', 'renderInvoice']);
 
         // Receipts
         $r->get('/receipts',                              ['App\\Controllers\\ReceiptsController', 'index']);

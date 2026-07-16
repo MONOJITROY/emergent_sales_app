@@ -1,0 +1,98 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+* { margin:0; padding:0; }
+body { font-family:DejaVu Sans,sans-serif; color:#1a1a1a; font-size:10px; line-height:1.4; }
+.fixed-header { position:fixed; top:0; width:100%; }
+.fixed-footer { position:fixed; bottom:0; width:100%; }
+.body-content { padding:0; }
+
+/* Fixed header — two-column table */
+.fixed-hdr-table { width:100%; border-bottom:2px solid #1a1a1a; padding-bottom:4px; }
+.fixed-hdr-table td { vertical-align:top; }
+.fixed-hdr-left { width:55%; }
+.fixed-hdr-right { width:45%; text-align:right; }
+
+/* Company header — compact */
+.company-name { font-size:13px; font-weight:700; margin-bottom:2px; }
+.small { font-size:8px; color:#555; }
+
+/* Document meta (right side of fixed header) */
+.doc-title { font-size:16px; font-weight:700; margin-bottom:3px; }
+.doc-meta { font-size:9px; text-align:right; }
+.doc-meta div { margin-bottom:1px; }
+
+/* Party boxes */
+.party-section { width:100%; margin-bottom:10px; }
+.party-section td { width:50%; vertical-align:top; padding-right:10px; }
+.party-section td:last-child { padding-right:0; padding-left:10px; }
+.party-box { margin-bottom:6px; }
+.party-title { font-size:8px; text-transform:uppercase; letter-spacing:.06em; color:#666; font-weight:600; margin-bottom:3px; }
+.party-name { font-weight:600; font-size:11px; margin-bottom:2px; }
+
+/* Items table */
+.items-table { width:100%; border-collapse:collapse; margin-bottom:8px; font-size:9.5px; }
+.items-table th { background:#f0f0f0; font-size:8px; text-transform:uppercase; letter-spacing:.04em; padding:5px 6px; border:1px solid #ccc; color:#555; }
+.items-table td { padding:5px 6px; border-bottom:1px solid #e5e5e5; }
+.items-table tbody tr:last-child td { border-bottom:2px solid #1a1a1a; }
+.items-table th.l, .items-table td.l { text-align:left; }
+.items-table th.r, .items-table td.r { text-align:right; }
+.items-table th.c, .items-table td.c { text-align:center; }
+.items-table th.slno { width:4%; }
+.items-table th.itemname { width:30%; }
+.items-table th.hsnsac { width:12%; }
+.items-table th.qnty { width:7%; }
+.items-table th.qunit { width:7%; }
+.items-table th.rate { width:10%; }
+.items-table th.taxrate { width:8%; }
+.items-table th.taxamt { width:10%; }
+.items-table th.linetotal { width:12%; }
+
+/* Sub-footer (tax breakup + totals, body flow, last page only) */
+.sub-footer { width:100%; margin-top:8px; margin-bottom:8px; }
+.sub-footer td { vertical-align:top; }
+
+/* Tax breakup table */
+.tax-table { width:100%; border-collapse:collapse; font-size:9px; margin-bottom:0; }
+.tax-table th { font-size:8px; text-transform:uppercase; letter-spacing:.03em; background:#f8f8f8; padding:4px 5px; border:1px solid #ccc; }
+.tax-table td { padding:4px 5px; border:1px solid #e5e5e5; }
+
+/* Totals table */
+.totals-table { width:220px; margin-left:auto; margin-bottom:8px; }
+.totals-table td { padding:3px 8px; font-size:10px; }
+.totals-table .bold td { border-top:1px solid #1a1a1a; padding-top:5px; font-weight:700; }
+.totals-table .orange td { color:#ea580c; font-weight:700; }
+
+/* Running total (fixed footer) */
+.running-total { text-align:right; padding:4px 0; }
+.running-total .section-title { display:inline; margin-right:8px; }
+.running-total-amount { display:inline; font-size:12px; font-weight:700; }
+
+/* Bank box */
+.bank-box { margin-bottom:5px; font-size:9px; line-height:1.6; }
+
+/* Signature */
+.sig-box { text-align:right; margin-top:20px; }
+.sig-line { width:200px; border-top:1px solid #999; margin-left:auto; margin-bottom:4px; margin-top:40px; }
+.sig-name { font-weight:600; font-size:10px; }
+.sig-company { font-size:9px; color:#555; }
+
+/* Amount in words */
+.amt-words { font-size:9.5px; margin-bottom:8px; padding:6px 8px; background:#f8f8f8; border:1px solid #e5e5e5; }
+
+/* Section title */
+.section-title { font-size:8px; text-transform:uppercase; letter-spacing:.06em; color:#666; font-weight:600; margin-bottom:4px; }
+
+/* Terms */
+.terms { font-size:8.5px; color:#555; margin-top:8px; line-height:1.6; }
+.terms .section-title { margin-bottom:2px; }
+
+/* Utility */
+.r { text-align:right; }
+.c { text-align:center; }
+.fw { font-weight:600; }
+.bold { font-weight:700; }
+.orange { color:#ea580c; font-weight:700; }
+.n { font-weight:400; }
+
+/* Page break */
+.page-break { page-break-before:always; }
+@page { margin-top:75px; margin-bottom:80px; }</style></head><body><div class="fixed-header"><table class="fixed-hdr-table"><tr><td class="fixed-hdr-left"><div class="company-name">Emergent Sales Pvt Ltd</div><div class="small">45 Industrial Area Phase 2, Bangalore</div><div class="small">Phone: +91 80 1234 5678 | Email: info@emergent.co.in</div><div class="small">GST No: 29AABCE1234F1ZP</div></td><td class="fixed-hdr-right"><div class="doc-title">INVOICE</div><div class="doc-meta"><div><b>Invoice #:</b> INV-2026-001</div><div><b>Date:</b> 16-07-2026</div><div><b>Status:</b> PAID</div></div></td></tr></table></div><div class="body-content"><table class="party-section"><tr><td><div class="party-box"><div class="party-title">Bill To</div><div class="party-name">Acme Industries Pvt Ltd</div><div class="small">Address: 12/34 MG Road, Bangalore 560001</div><div class="small">Phone: +91 80 2345 6789</div><div class="small">Email: purchase@acme.in</div></div></td><td><div class="party-box"><div class="party-title">Ship To</div><div class="party-name">Acme Industries Pvt Ltd</div><div class="small">Address: 12/34 MG Road, Bangalore 560001</div><div class="small">Phone: +91 80 2345 6789</div><div class="small">Email: purchase@acme.in</div></div></td></tr></table><table class="items-table"><thead><tr><th class="slno">Sl<br>No</th><th class="itemname l">Description of goods</th><th class="hsnsac l">HSN/SAC</th><th class="qnty r">Qty</th><th class="qunit l">Per</th><th class="rate r">Rate</th><th class="taxrate r">Tax %</th><th class="taxamt r">Tax Amt</th><th class="linetotal r">Amount</th></tr></thead><tbody><tr><td>1</td><td>Widget A</td><td>8471</td><td class="r">10</td><td>pcs</td><td class="r">500.00</td><td class="r">18%</td><td class="r">900.00</td><td class="r">5,900.00</td></tr><tr><td>2</td><td>Widget B</td><td>8472</td><td class="r">5</td><td>pcs</td><td class="r">600.00</td><td class="r">18%</td><td class="r">540.00</td><td class="r">3,540.00</td></tr><tr><td>3</td><td>Service Fees</td><td>9983</td><td class="r">1</td><td>lot</td><td class="r">2,000.00</td><td class="r">18%</td><td class="r">360.00</td><td class="r">2,360.00</td></tr><tr><td>4</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>5</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>6</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>7</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>8</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>9</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>10</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>11</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>12</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>13</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>14</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr><tr><td>15</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr></tbody></table><table class="sub-footer"><tr><td style="width:55%"><div class="section-title">Tax Breakup</div><table class="tax-table"><thead><tr><th>HSN/SAC</th><th class="r">Taxable Value</th><th class="c" colspan="2">CGST</th><th class="c" colspan="2">SGST / UTGST</th><th class="r">Total</th></tr><tr><th></th><th></th><th class="r n">Rate</th><th class="r n">Amount</th><th class="r n">Rate</th><th class="r n">Amount</th><th></th></tr></thead><tbody><tr><td>8471</td><td class="r">5,000.00</td><td class="r">9%</td><td class="r">450.00</td><td class="r">9%</td><td class="r">450.00</td><td class="r fw">900.00</td></tr><tr><td>8472</td><td class="r">3,000.00</td><td class="r">9%</td><td class="r">270.00</td><td class="r">9%</td><td class="r">270.00</td><td class="r fw">540.00</td></tr><tr><td>9983</td><td class="r">2,000.00</td><td class="r">9%</td><td class="r">180.00</td><td class="r">9%</td><td class="r">180.00</td><td class="r fw">360.00</td></tr><tr class="bold"><td>Total</td><td class="r">10,000.00</td><td></td><td class="r">900.00</td><td></td><td class="r">900.00</td><td class="r">1,800.00</td></tr></tbody></table></td><td style="width:45%;vertical-align:top"><table class="totals-table"><tr><td>Subtotal</td><td class="r">10,000.00</td></tr><tr><td>Discount</td><td class="r">--500.00</td></tr><tr><td>Tax</td><td class="r">+1,710.00</td></tr><tr class="bold"><td>Total</td><td class="r">11,210.00</td></tr><tr><td>Paid</td><td class="r">11,210.00</td></tr><tr class="orange"><td>Balance</td><td class="r">0.00</td></tr></table></td></tr></table><table style="width:100%"><tr><td style="width:55%;vertical-align:top"><div class="amt-words"><b>Amount in words:</b> Rupees Eleven Thousand Two Hundred Ten Only</div><div class="bank-box"><div class="section-title">Bank Details</div><b>Bank:</b> HDFC Bank<br><b>A/C Holder:</b> Emergent Sales Pvt Ltd<br><b>A/C No:</b> 50100012345678<br><b>IFSC:</b> HDFC0001234<br><b>Branch:</b> Indiranagar</div><div class="terms"><div class="section-title">Terms & Conditions</div>1) Goods once sold will not be taken back or exchanged.<br>2) Payment by cheque/draft subject to realisation.<br>3) Interest at 18% p.a. will be charged on overdue invoices.<br>4) Subject to jurisdiction of local courts.<br></div></td><td style="width:45%;vertical-align:bottom;text-align:right"><div class="section-title" style="margin-bottom:4px">Authorised Signatory</div><div class="sig-line"></div><div class="sig-name">Ravi Kumar</div><div class="sig-company">Emergent Sales Pvt Ltd</div></td></tr></table></div><div class="fixed-footer"><div class="running-total"><div class="section-title">Running Total</div><div class="running-total-amount">11,210.00</div></div></div></body></html>

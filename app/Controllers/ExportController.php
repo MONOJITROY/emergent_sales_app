@@ -8,8 +8,19 @@ use App\Core\Request;
 use App\Core\Mailer;
 use App\Core\Database;
 use App\Models\Sale;
+use App\Models\Purchase;
 use App\Models\Customer;
 use App\Models\Company;
+use App\Models\CreditNote;
+use App\Models\DebitNote;
+use App\Models\Quotation;
+use App\Models\DeliveryChallan;
+use App\Services\Pdf\Documents\SalesInvoice;
+use App\Services\Pdf\Documents\PurchaseOrder;
+use App\Services\Pdf\Documents\CreditNote as CreditNotePdf;
+use App\Services\Pdf\Documents\DebitNote as DebitNotePdf;
+use App\Services\Pdf\Documents\QuotationEstimate;
+use App\Services\Pdf\Documents\DeliveryChallan as DeliveryChallanPdf;
 
 final class ExportController extends Controller
 {
@@ -42,20 +53,66 @@ final class ExportController extends Controller
     public function invoicePdf(Request $r): void
     {
         Auth::user();
-        if (!class_exists('Dompdf\\Dompdf')) {
-            $this->json(['ok' => false, 'error' => 'Dompdf not installed. Run `composer install`.'], 500); return;
-        }
         $sale = Sale::withItems((int)$r->param('id'));
         if (!$sale) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
-        $html = $this->invoiceHtml($sale);
-        $dompdf = new \Dompdf\Dompdf(['isRemoteEnabled' => true, 'defaultFont' => 'DejaVu Sans']);
-        $dompdf->loadHtml($html, 'UTF-8');
-        $dompdf->setPaper('A4');
-        $dompdf->render();
-        $download = isset($_GET['download']);
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: ' . ($download ? 'attachment' : 'inline') . '; filename="' . $sale['invoice_no'] . '.pdf"');
-        echo $dompdf->output(); exit;
+        $company = Company::settings() ?: [];
+        $doc = new SalesInvoice($sale, $company);
+        $doc->output($sale['invoice_no'], isset($_GET['download']));
+    }
+
+    // GET /api/exports/purchase-order/{id}.pdf
+    public function purchaseOrderPdf(Request $r): void
+    {
+        Auth::user();
+        $purchase = Purchase::withItems((int)$r->param('id'));
+        if (!$purchase) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
+        $company = Company::settings() ?: [];
+        $doc = new PurchaseOrder($purchase, $company);
+        $doc->output($purchase['ref_no'], isset($_GET['download']));
+    }
+
+    // GET /api/exports/credit-note/{id}.pdf
+    public function creditNotePdf(Request $r): void
+    {
+        Auth::user();
+        $cn = CreditNote::withItems((int)$r->param('id'));
+        if (!$cn) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
+        $company = Company::settings() ?: [];
+        $doc = new CreditNotePdf($cn, $company);
+        $doc->output($cn['cn_no'], isset($_GET['download']));
+    }
+
+    // GET /api/exports/debit-note/{id}.pdf
+    public function debitNotePdf(Request $r): void
+    {
+        Auth::user();
+        $dn = DebitNote::withItems((int)$r->param('id'));
+        if (!$dn) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
+        $company = Company::settings() ?: [];
+        $doc = new DebitNotePdf($dn, $company);
+        $doc->output($dn['dn_no'], isset($_GET['download']));
+    }
+
+    // GET /api/exports/quotation/{id}.pdf
+    public function quotationPdf(Request $r): void
+    {
+        Auth::user();
+        $q = Quotation::withItems((int)$r->param('id'));
+        if (!$q) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
+        $company = Company::settings() ?: [];
+        $doc = new QuotationEstimate($q, $company);
+        $doc->output($q['quote_no'], isset($_GET['download']));
+    }
+
+    // GET /api/exports/delivery-challan/{id}.pdf
+    public function deliveryChallanPdf(Request $r): void
+    {
+        Auth::user();
+        $dc = DeliveryChallan::withItems((int)$r->param('id'));
+        if (!$dc) { $this->json(['ok'=>false,'error'=>'Not found'],404); return; }
+        $company = Company::settings() ?: [];
+        $doc = new DeliveryChallanPdf($dc, $company);
+        $doc->output($dc['dc_no'], isset($_GET['download']));
     }
 
     // POST /api/sales/{id}/email
